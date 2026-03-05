@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+.venv/
+
+# runtime artifacts
+data/normalized/
+output/
+
+# local user state
+data/state/preferences.json

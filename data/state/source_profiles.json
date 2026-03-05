@@ -1,0 +1,84 @@
+{
+  "default": {
+    "enabled": true,
+    "priority": 50,
+    "max_items": 3,
+    "title_blacklist_contains": [
+      "open post",
+      "submit",
+      "about",
+      "privacy",
+      "terms",
+      "contact",
+      "archive",
+      "subscribe",
+      "sign in",
+      "log in",
+      "leaderboard",
+      "retry"
+    ]
+  },
+  "sidebar.io": {
+    "enabled": true,
+    "priority": 90,
+    "max_items": 3,
+    "title_blacklist_contains": [
+      "submit a link",
+      "jobs",
+      "sponsor",
+      "advertise"
+    ]
+  },
+  "kottke.org": {
+    "enabled": true,
+    "priority": 85,
+    "max_items": 3,
+    "title_blacklist_contains": [
+      "open thread",
+      "open post",
+      "archive",
+      "notes & interviews"
+    ]
+  },
+  "readup.org": {
+    "enabled": true,
+    "priority": 60,
+    "max_items": 2,
+    "title_blacklist_contains": [
+      "article of the day",
+      "leaderboards",
+      "profile",
+      "for you",
+      "trending"
+    ]
+  },
+  "thebrowser.com": {
+    "enabled": true,
+    "priority": 70,
+    "max_items": 3,
+    "title_blacklist_contains": [
+      "join",
+      "sample edition",
+      "gift subscriptions",
+      "letters to the editor",
+      "editor",
+      "archive",
+      "edition",
+      "newsletter",
+      "notes & interviews",
+      "notes and interviews"
+    ]
+  },
+  "the-syllabus.com": {
+    "enabled": true,
+    "priority": 75,
+    "max_items": 3,
+    "title_blacklist_contains": [
+      "institutions",
+      "about",
+      "archive",
+      "letters to the editor",
+      "the stuff you miss"
+    ]
+  }
+}
