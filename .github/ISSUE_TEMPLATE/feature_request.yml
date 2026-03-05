@@ -1,0 +1,30 @@
+name: Feature Request
+description: Suggest an improvement for Newsletter AI
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: input
+    id: problem
+    attributes:
+      label: Problem Statement
+      placeholder: What problem are you trying to solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      placeholder: Describe your proposed approach.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+  - type: textarea
+    id: success
+    attributes:
+      label: Success Criteria
+      placeholder: How do we know this is done?
+    validations:
+      required: true
