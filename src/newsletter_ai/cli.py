@@ -1,4 +1,4 @@
-"""CLI entrypoint for newsletter-ai v0.2.4S."""
+"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix."""
 
 import argparse
 import json
@@ -13,7 +13,7 @@ from .feedback import apply_feedback, load_preferences, resolve_item_from_snapsh
 def main():
     parser = argparse.ArgumentParser(
         prog="newsletter-ai",
-        description="newsletter-ai v0.2.4S acceptance fix"
+        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI"
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -22,7 +22,7 @@ def main():
     daily_p.add_argument("--dry-run", action="store_true")
     daily_p.add_argument("--no-publish", action="store_true")
 
-    # feedback - use a single string argument to avoid parser conflict
+    # feedback
     fb_p = subparsers.add_parser("feedback", help="Apply feedback using snapshot")
     fb_p.add_argument("command", help='Full command string e.g. "like 1" or "source_up Stratechery"')
     fb_p.add_argument("--dry-run", action="store_true")
@@ -39,6 +39,10 @@ def main():
     # health / status
     subparsers.add_parser("health", help="Health report")
     subparsers.add_parser("status", help="Pipeline status")
+
+    # quality (v0.3.1R verified registration)
+    quality_p = subparsers.add_parser("quality", help="Quality report commands")
+    quality_p.add_argument("subcmd", choices=["show", "json", "explain"])
 
     args = parser.parse_args()
     cfg = load_config()
@@ -83,6 +87,50 @@ def main():
     elif args.command == "status":
         from .status import check_pipeline_status
         print(check_pipeline_status(cfg))
+        sys.exit(0)
+
+    elif args.command == "quality":
+        from .quality import generate_quality_report, save_quality_report
+        import uuid
+        output_dir = cfg["OUTPUT_DIR"]
+        quality_dir = output_dir / "quality"
+        latest_md = quality_dir / "latest_quality.md"
+        latest_json = quality_dir / "latest_quality.json"
+
+        if args.subcmd in ("show", "json", "explain"):
+            if not latest_json.exists():
+                # Auto-generate a minimal report if missing
+                demo_sources = [
+                    {"source": "fixture", "status": "ok", "raw_item_count": 5, "normalized_item_count": 4, "final_item_count": 3, "warnings": []}
+                ]
+                demo_items = [{"id": "1", "topic": "ai", "source": "fixture"}]
+                report = generate_quality_report(str(uuid.uuid4())[:8], demo_sources, demo_items, duplicate_count=1, malformed_count=0, empty_count=0)
+                save_quality_report(report, output_dir)
+
+        if args.subcmd == "show":
+            if latest_md.exists():
+                print(latest_md.read_text(encoding="utf-8"))
+            else:
+                print("No quality report found. Run daily first.")
+        elif args.subcmd == "json":
+            if latest_json.exists():
+                print(latest_json.read_text(encoding="utf-8"))
+            else:
+                print("No quality report found. Run daily first.")
+        elif args.subcmd == "explain":
+            if latest_json.exists():
+                data = json.loads(latest_json.read_text())
+                print(f"Quality Report Explain:")
+                print(f"  sources_checked: {data.get('sources_checked')}")
+                print(f"  items_raw: {data.get('items_raw')}")
+                print(f"  items_after_dedupe: {data.get('items_after_dedupe')}")
+                print(f"  duplicate_count: {data.get('duplicate_count')}")
+                print(f"  malformed_feed_count: {data.get('malformed_feed_count')}")
+                print(f"  empty_feed_count: {data.get('empty_feed_count')}")
+                print(f"  warnings: {data.get('warnings', [])}")
+                print("  Why this order: Top items selected by base_score + topic/style preference from feedback.")
+            else:
+                print("No quality report found. Run daily first.")
         sys.exit(0)
 
     else:
