@@ -1,53 +1,43 @@
-# Newsletter AI (Telegram-first)
+# Newsletter AI (v0.2.1 - Legacy Migration + Safe Publisher)
 
-A lightweight daily newsletter pipeline that:
+Local-first daily newsletter pipeline with full safety guarantees.
 
-- Fetches from configured RSS/web sources
-- Keeps only yesterday's items
-- Applies noise filtering, de-dup, and per-source caps
-- Ranks items with feedback-driven preferences
-- Builds digest for Telegram + Obsidian backup
-- Produces health/validation reports
+**Recommended entry points**:
+- `newsletter-ai daily [--dry-run] [--no-publish]`
+- `make smoke / make daily / make health / make status`
 
-## Quick Start
+## Quick Safety Flow (new machine)
 
 ```bash
-python3 scripts/run_daily_pipeline.py
-python3 scripts/check_pipeline_status.py
-python3 scripts/validate_release.py --with-feedback-smoke
+make install
+make smoke                    # dry-run, zero risk
+newsletter-ai daily --dry-run
+newsletter-ai daily --no-publish
+# Only after configuring TELEGRAM_* env vars:
+newsletter-ai daily
 ```
 
-Or use Make targets:
+## Modes
 
-```bash
-make validate
-make validate-smoke
-make daily
-make status
+- `--dry-run`: No network, no Telegram, uses fixtures/simulation
+- `--no-publish`: Generate digest + snapshot, skip Telegram send
+- Default `daily`: Attempts publish only if token+chat_id present (otherwise fails safely)
+
+## Telegram Configuration
+
+Set in environment or .env:
+```
+TELEGRAM_BOT_TOKEN=...
+TELEGRAM_CHAT_ID=...
 ```
 
-## Data & Config
+Never commit these.
 
-- Source config: `data/state/sources.json`
-- Source profile rules: `data/state/source_profiles.json`
-- Preferences template: `data/state/preferences.example.json`
+## Legacy Scripts
 
-Create your local `preferences.json` from the example:
+All original scripts have been moved to `legacy/v0.1/scripts/`.
+Active `scripts/` now contain thin wrappers that delegate to `newsletter-ai` CLI.
 
-```bash
-cp data/state/preferences.example.json data/state/preferences.json
-```
+Directly running legacy scripts is discouraged.
 
-## Core Scripts
-
-- `scripts/fetch_rss_minimal.py` — fetch + normalize + filter
-- `scripts/rank_items.py` — preference-based ranking
-- `scripts/build_digest_minimal.py` — digest generation with snippet quality gates
-- `scripts/build_health_report.py` — health + trusted-snippet metrics
-- `scripts/validate_release.py` — one-command release validation (terminal + md + json)
-- `scripts/run_feedback_pipeline.py` — apply `/fb` feedback and refresh outputs
-
-## Notes
-
-- Runtime artifacts (`data/normalized/`, `output/`) are excluded from git.
-- Personal feedback (`data/state/preferences.json`) is excluded from git.
+See MIGRATION.md and docs/OPERATIONS.md for details.

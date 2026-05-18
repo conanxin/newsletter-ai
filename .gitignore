@@ -6,6 +6,11 @@ __pycache__/
 # runtime artifacts
 data/normalized/
 output/
+*.log
 
 # local user state
 data/state/preferences.json
+auth.json
+*.token
+chat_id.txt
+bot_token.txt

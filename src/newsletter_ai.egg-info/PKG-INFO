@@ -1,0 +1,85 @@
+Metadata-Version: 2.4
+Name: newsletter-ai
+Version: 0.2.0
+Summary: Local-first daily newsletter pipeline with ranking and Telegram output
+Author-email: Conan Xin <conanxin@example.com>
+License: MIT
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests>=2.31.0
+Requires-Dist: beautifulsoup4>=4.12.0
+Requires-Dist: feedparser>=6.0.10
+Requires-Dist: python-dateutil>=2.8.2
+Requires-Dist: pytz>=2024.1
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0.0; extra == "dev"
+Requires-Dist: pytest-mock>=3.14.0; extra == "dev"
+Dynamic: license-file
+
+# Newsletter AI (v0.2 - Hardened)
+
+A local-first daily newsletter pipeline:
+- Fetches RSS sources
+- Ranks with feedback-driven preferences
+- Builds Telegram-ready digest + Obsidian backup
+- Health & validation reports
+- Fully configurable paths, no hard-coded absolute locations
+
+**v0.2 focus**: portability, testability, auditability. No hosted backend, no complex DB.
+
+## Installation (new machine)
+
+```bash
+git clone https://github.com/conanxin/newsletter-ai.git
+cd newsletter-ai
+python -m pip install -e .[dev]
+cp .env.example .env
+# edit .env if needed
+```
+
+## Usage
+
+```bash
+make install
+make smoke          # dry-run
+make daily
+make health
+make status
+newsletter-ai feedback "like 1"
+```
+
+## Configuration
+
+See `.env.example` and `MIGRATION.md`.
+
+Environment variables:
+- `NEWSLETTER_BASE_DIR`
+- `NEWSLETTER_TZ` (default Asia/Shanghai)
+- `NEWSLETTER_OUTPUT_DIR`
+- `NEWSLETTER_DATA_DIR`
+
+## Output layout
+- `output/state/last-run-status.json`
+- `output/digest/`
+- `output/normalized/`
+- `data/state/`
+
+Runtime artifacts and personal preferences are git-ignored.
+
+## Safety
+**Never commit**:
+- `.env`
+- real `output/`
+- `auth.json`, tokens, `chat_id`, `bot_token`
+- `data/state/preferences.json`
+
+All network tests use mocks. Use `--dry-run` in CI.
+
+## v0.2 vs v0.1
+- Dynamic config instead of hard-coded `/mnt/d/...`
+- Structured pipeline steps with timing & failure tracking
+- CLI unified under `newsletter-ai`
+- Full test suite (`pytest`)
+- Documentation: ARCHITECTURE.md, OPERATIONS.md, MIGRATION.md
+- pyproject.toml + installable package

@@ -1,0 +1,2 @@
+[console_scripts]
+newsletter-ai = newsletter_ai.cli:main

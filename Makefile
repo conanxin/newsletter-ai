@@ -1,20 +1,34 @@
-.PHONY: validate validate-soft validate-smoke daily status
+.PHONY: validate validate-soft validate-smoke daily status smoke health install
 
 PYTHON ?= python3
-BASE := /mnt/d/obsidian_nov/nov/newsletter
+BASE ?= $(CURDIR)
 SCRIPTS := $(BASE)/scripts
+PKG := newsletter-ai
 
+# Legacy validate targets (now point to legacy scripts with deprecation warning)
 validate:
-	$(PYTHON) $(SCRIPTS)/validate_release.py
+	@echo "[DEPRECATION] validate now uses legacy/v0.1/scripts/validate_release.py"
+	$(PYTHON) legacy/v0.1/scripts/validate_release.py
 
 validate-soft:
-	$(PYTHON) $(SCRIPTS)/validate_release.py --soft-exit
+	@echo "[DEPRECATION] validate-soft now uses legacy/v0.1/scripts/validate_release.py"
+	$(PYTHON) legacy/v0.1/scripts/validate_release.py --soft-exit
 
 validate-smoke:
-	$(PYTHON) $(SCRIPTS)/validate_release.py --with-feedback-smoke
+	@echo "[DEPRECATION] validate-smoke now uses legacy/v0.1/scripts/validate_release.py"
+	$(PYTHON) legacy/v0.1/scripts/validate_release.py --with-feedback-smoke
 
 daily:
-	$(PYTHON) $(SCRIPTS)/run_daily_pipeline.py
+	$(PKG) daily
 
 status:
-	$(PYTHON) $(SCRIPTS)/check_pipeline_status.py
+	$(PKG) status
+
+smoke:
+	$(PKG) daily --dry-run
+
+health:
+	$(PKG) health
+
+install:
+	$(PYTHON) -m pip install -e .[dev]
