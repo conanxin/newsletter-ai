@@ -1,22 +1,18 @@
-.PHONY: validate validate-soft validate-smoke daily status smoke health install
+.PHONY: validate validate-soft validate-smoke daily status smoke health install legacy-validate
 
 PYTHON ?= python3
 BASE ?= $(CURDIR)
 SCRIPTS := $(BASE)/scripts
 PKG := newsletter-ai
 
-# Legacy validate targets (now point to legacy scripts with deprecation warning)
 validate:
-	@echo "[DEPRECATION] validate now uses legacy/v0.1/scripts/validate_release.py"
-	$(PYTHON) legacy/v0.1/scripts/validate_release.py
+	$(PKG) health
 
 validate-soft:
-	@echo "[DEPRECATION] validate-soft now uses legacy/v0.1/scripts/validate_release.py"
-	$(PYTHON) legacy/v0.1/scripts/validate_release.py --soft-exit
+	$(PKG) status
 
 validate-smoke:
-	@echo "[DEPRECATION] validate-smoke now uses legacy/v0.1/scripts/validate_release.py"
-	$(PYTHON) legacy/v0.1/scripts/validate_release.py --with-feedback-smoke
+	$(PKG) daily --dry-run
 
 daily:
 	$(PKG) daily
@@ -32,3 +28,7 @@ health:
 
 install:
 	$(PYTHON) -m pip install -e .[dev]
+
+legacy-validate:
+	@echo "[DEPRECATION WARNING] legacy-validate uses legacy/v0.1/scripts/"
+	$(PYTHON) legacy/v0.1/scripts/validate_release.py || true

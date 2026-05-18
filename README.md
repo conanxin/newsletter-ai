@@ -1,43 +1,28 @@
-# Newsletter AI (v0.2.1 - Legacy Migration + Safe Publisher)
+# Newsletter AI (v0.2.2 - Feedback + Preference Engine)
 
-Local-first daily newsletter pipeline with full safety guarantees.
+Local-first daily newsletter with real feedback-driven ranking.
 
-**Recommended entry points**:
-- `newsletter-ai daily [--dry-run] [--no-publish]`
-- `make smoke / make daily / make health / make status`
+## v0.2.2 Highlights
+- Real feedback engine (like/dislike/source_up/topic_down etc.)
+- Preferences learned from user actions
+- Ranking now uses source/topic/style weights
+- Health report shows feedback count and safety status
+- All feedback writes audit trail (events + history)
 
-## Quick Safety Flow (new machine)
-
+## Feedback Usage
 ```bash
-make install
-make smoke                    # dry-run, zero risk
-newsletter-ai daily --dry-run
-newsletter-ai daily --no-publish
-# Only after configuring TELEGRAM_* env vars:
-newsletter-ai daily
+newsletter-ai feedback "like 1"
+newsletter-ai feedback "dislike 2"
+newsletter-ai feedback "source_up Stratechery"
+newsletter-ai feedback "topic_down crypto"
+newsletter-ai feedback "save 3 --note 'deep dive'"
+newsletter-ai prefs show
+newsletter-ai prefs explain
 ```
 
-## Modes
+## Safety
+- `--dry-run` on feedback never writes
+- No real Telegram send without credentials
+- Weights clamped 0.1~3.0
 
-- `--dry-run`: No network, no Telegram, uses fixtures/simulation
-- `--no-publish`: Generate digest + snapshot, skip Telegram send
-- Default `daily`: Attempts publish only if token+chat_id present (otherwise fails safely)
-
-## Telegram Configuration
-
-Set in environment or .env:
-```
-TELEGRAM_BOT_TOKEN=...
-TELEGRAM_CHAT_ID=...
-```
-
-Never commit these.
-
-## Legacy Scripts
-
-All original scripts have been moved to `legacy/v0.1/scripts/`.
-Active `scripts/` now contain thin wrappers that delegate to `newsletter-ai` CLI.
-
-Directly running legacy scripts is discouraged.
-
-See MIGRATION.md and docs/OPERATIONS.md for details.
+See docs/OPERATIONS.md for full workflow.

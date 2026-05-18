@@ -1,11 +1,9 @@
-# Architecture v0.2.1
+# Architecture v0.2.2
 
-- config.py: dynamic base dir resolution (env > git root > cwd)
-- pipeline.py: step-tracked runner + publisher integration
-- publisher.py: DryRunPublisher + TelegramPublisher (safe by default)
-- cli.py: unified command interface with --dry-run / --no-publish
-- legacy/v0.1/scripts/: archived v0.1 implementations (read-only reference)
-- scripts/: thin compatibility wrappers only
-
-All network and publish operations go through publisher abstraction.
-No real Telegram send without explicit token + non-dry-run.
+- feedback.py: event recording + preference update + history
+- ranking.py: score_item with source/topic/style weights
+- models.py: FeedbackEvent + Preferences dataclasses
+- health.py: real status of feedback/preferences/publisher safety
+- cli.py: feedback + prefs commands
+- All writes go through DATA_DIR from config
+- Legacy targets moved to explicit `legacy-validate`
