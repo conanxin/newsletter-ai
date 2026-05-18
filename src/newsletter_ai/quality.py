@@ -1,4 +1,4 @@
-"""Source Quality Tracking and Digest Quality Report for newsletter-ai v0.3.1"""
+"""Source Quality Tracking, Scoring and Digest Quality Report for newsletter-ai v0.3.2"""
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -10,13 +10,16 @@ import json
 class SourceQuality:
     source: str
     feed_path: str
-    status: str = "ok"  # ok, empty, malformed, failed
+    status: str = "ok"
     raw_item_count: int = 0
     normalized_item_count: int = 0
     duplicate_removed_count: int = 0
     final_item_count: int = 0
     top_item_titles: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
+    source_quality_score: float = 0.0
+    source_score_breakdown: Dict[str, float] = field(default_factory=dict)
+    recommended_action: str = "keep"
 
 @dataclass
 class QualityReport:
@@ -37,6 +40,8 @@ class QualityReport:
     source_distribution: Dict[str, int] = field(default_factory=dict)
     warnings: List[str] = field(default_factory=list)
     source_details: List[SourceQuality] = field(default_factory=list)
+    duplicate_reason_counts: Dict[str, int] = field(default_factory=dict)
+    fuzzy_duplicate_count: int = 0
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -44,16 +49,57 @@ class QualityReport:
             "source_details": [asdict(s) for s in self.source_details]
         }
 
+def _calculate_source_score(sq: SourceQuality) -> tuple[float, Dict[str, float], str]:
+    """Calculate source quality score 0.0-1.0 with breakdown."""
+    feed_status_score = {
+        "ok": 1.0,
+        "empty": 0.45,
+        "malformed": 0.15,
+        "failed": 0.0
+    }.get(sq.status, 0.5)
+
+    item_yield = sq.normalized_item_count / max(sq.raw_item_count, 1)
+    item_yield_score = min(1.0, item_yield * 1.1)
+
+    dedupe_penalty = max(0.0, 0.25 * (sq.duplicate_removed_count / max(sq.raw_item_count, 1)))
+    final_item_score = 0.15 if sq.final_item_count > 0 else 0.0
+    warning_penalty = max(0.0, 0.1 * len(sq.warnings))
+
+    score = feed_status_score + item_yield_score + final_item_score - dedupe_penalty - warning_penalty
+    score = max(0.0, min(1.0, round(score, 3)))
+
+    breakdown = {
+        "feed_status_score": round(feed_status_score, 3),
+        "item_yield_score": round(item_yield_score, 3),
+        "dedupe_penalty": round(dedupe_penalty, 3),
+        "final_item_score": round(final_item_score, 3),
+        "warning_penalty": round(warning_penalty, 3)
+    }
+
+    if score >= 0.75:
+        action = "keep"
+    elif score >= 0.45:
+        action = "watch"
+    elif score >= 0.25:
+        action = "review"
+    else:
+        action = "disable_candidate"
+
+    return score, breakdown, action
+
 def generate_quality_report(
     run_id: str,
     sources: List[Dict[str, Any]],
     items_after_dedupe: List[Dict[str, Any]],
+    duplicate_records: List[Dict[str, Any]] = None,
     duplicate_count: int = 0,
     malformed_count: int = 0,
     empty_count: int = 0,
 ) -> QualityReport:
-    """Generate quality report from pipeline data."""
+    """Generate quality report with source scoring and duplicate reasons."""
     now = datetime.now().isoformat()
+    duplicate_records = duplicate_records or []
+
     report = QualityReport(
         run_id=run_id,
         created_at=now,
@@ -68,20 +114,31 @@ def generate_quality_report(
         empty_feed_count=empty_count,
     )
 
-    # Simple distributions
-    topic_dist = {}
-    source_dist = {}
+    # Calculate duplicate reason counts
+    reason_counts = {}
+    fuzzy_count = 0
+    for rec in duplicate_records:
+        reason = rec.get("duplicate_reason", "unknown")
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+        if reason == "fuzzy_title_source":
+            fuzzy_count += 1
+
+    report.duplicate_reason_counts = reason_counts
+    report.fuzzy_duplicate_count = fuzzy_count
+
+    # Topic and source distribution
+    topic_dist, source_dist = {}, {}
     for item in items_after_dedupe:
         topic = item.get("topic", "unknown")
-        source = item.get("source", "unknown")
+        src = item.get("source", "unknown")
         topic_dist[topic] = topic_dist.get(topic, 0) + 1
-        source_dist[source] = source_dist.get(source, 0) + 1
+        source_dist[src] = source_dist.get(src, 0) + 1
 
     report.topic_distribution = topic_dist
     report.source_distribution = source_dist
     report.output_item_count = len(items_after_dedupe)
 
-    # Build source details
+    # Build source details with scoring
     for s in sources:
         sq = SourceQuality(
             source=s.get("source", "unknown"),
@@ -94,12 +151,15 @@ def generate_quality_report(
             top_item_titles=s.get("top_item_titles", [])[:3],
             warnings=s.get("warnings", []),
         )
+        score, breakdown, action = _calculate_source_score(sq)
+        sq.source_quality_score = score
+        sq.source_score_breakdown = breakdown
+        sq.recommended_action = action
         report.source_details.append(sq)
 
     return report
 
 def save_quality_report(report: QualityReport, output_dir: Path) -> Dict[str, Path]:
-    """Save quality report to json and md files."""
     quality_dir = output_dir / "quality"
     quality_dir.mkdir(parents=True, exist_ok=True)
 
@@ -109,19 +169,15 @@ def save_quality_report(report: QualityReport, output_dir: Path) -> Dict[str, Pa
     latest_md = quality_dir / "latest_quality.md"
 
     data = report.to_dict()
-
-    # Write JSON
     latest_json.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     hist_json.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # Write human-readable MD
     md_content = generate_quality_md(report)
     latest_md.write_text(md_content, encoding="utf-8")
 
     return {"json": latest_json, "historical": hist_json, "md": latest_md}
 
 def generate_quality_md(report: QualityReport) -> str:
-    """Generate human-readable markdown quality report."""
     lines = [
         "# Newsletter Quality Report",
         "",
@@ -131,20 +187,43 @@ def generate_quality_md(report: QualityReport) -> str:
         f"- Items raw: {report.items_raw}",
         f"- Items after dedupe: {report.items_after_dedupe}",
         f"- Duplicate removed: {report.duplicate_count}",
+        f"- Fuzzy duplicates: {report.fuzzy_duplicate_count}",
         f"- Empty feeds: {report.empty_feed_count}",
         f"- Malformed feeds: {report.malformed_feed_count}",
+        "",
+        "## Source quality scores",
+        "",
+        "| Source | Score | Status | Final items | Duplicate removed | Action |",
+        "|---|---:|---:|---:|---:|---|",
+    ]
+
+    for s in report.source_details:
+        lines.append(
+            f"| {s.source} | {s.source_quality_score:.3f} | {s.status} | {s.final_item_count} | {s.duplicate_removed_count} | {s.recommended_action} |"
+        )
+
+    lines.extend([
+        "",
+        "## Duplicate reasons",
+        "",
+        "| Reason | Count |",
+        "|---|---:|",
+    ])
+
+    for reason, count in sorted(report.duplicate_reason_counts.items(), key=lambda x: -x[1]):
+        lines.append(f"| {reason} | {count} |")
+
+    lines.extend([
         "",
         "## Source status",
         "",
         "| Source | Status | Raw | Normalized | Final | Warnings |",
         "|---|---|---:|---:|---:|---|",
-    ]
+    ])
 
     for s in report.source_details:
         warn_str = "; ".join(s.warnings) if s.warnings else "-"
-        lines.append(
-            f"| {s.source} | {s.status} | {s.raw_item_count} | {s.normalized_item_count} | {s.final_item_count} | {warn_str} |"
-        )
+        lines.append(f"| {s.source} | {s.status} | {s.raw_item_count} | {s.normalized_item_count} | {s.final_item_count} | {warn_str} |")
 
     lines.extend([
         "",
@@ -162,7 +241,6 @@ def generate_quality_md(report: QualityReport) -> str:
         "前 5 条内容排序依据（简化版）：",
     ])
 
-    # Simplified top items explanation
     for i, s in enumerate(report.source_details[:5], 1):
         if s.top_item_titles:
             lines.append(f"{i}. {s.top_item_titles[0]} (source: {s.source})")
