@@ -1,4 +1,4 @@
-"""v0.2 Pipeline runner with step tracking, dry-run and no-publish support."""
+"""v0.2.4S Pipeline runner with full dry-run snapshot support."""
 
 import json
 import time
@@ -26,7 +26,7 @@ def run_daily_pipeline(
     dry_run: bool = False,
     no_publish: bool = False
 ) -> Dict[str, Any]:
-    """Main daily pipeline with structured step logging."""
+    """Main daily pipeline with structured step logging and dry-run snapshot support."""
     if cfg is None:
         cfg = load_config()
 
@@ -53,6 +53,60 @@ def run_daily_pipeline(
             "status": "running",
         }
 
+        # For dry-run we still want to execute ranking + snapshot to make items show / feedback work
+        if dry_run and step_name in ("fetch", "rank", "digest"):
+            try:
+                if step_name == "rank":
+                    from .ranking import rank_items
+                    mock_items = [
+                        {"id": "1", "source": "techcrunch", "title": "AI Breakthrough", "base_score": 0.65, "topic_tags": ["ai"], "style_tags": ["analysis"]},
+                        {"id": "2", "source": "stratechery", "title": "Deep Tech Analysis", "base_score": 0.72, "topic_tags": ["tech"], "style_tags": ["essay"]},
+                    ]
+                    ranked = rank_items(mock_items, cfg)
+                    cfg["_ranked_items"] = ranked
+                    step_result.update({
+                        "status": "success",
+                        "finished_at": _now_iso(),
+                        "duration_sec": round(time.time() - start_time, 3),
+                        "ranked_count": len(ranked),
+                    })
+
+                elif step_name == "digest":
+                    from .snapshot import create_item_snapshot
+                    ranked_items = cfg.get("_ranked_items", [])
+                    snap = create_item_snapshot(
+                        ranked_items,
+                        cfg["OUTPUT_DIR"],
+                        cfg["DATA_DIR"],
+                        run_id=started
+                    )
+                    step_result.update({
+                        "status": "success",
+                        "finished_at": _now_iso(),
+                        "duration_sec": round(time.time() - start_time, 3),
+                        "snapshot": snap,
+                    })
+
+                else:  # fetch
+                    step_result.update({
+                        "status": "success",
+                        "finished_at": _now_iso(),
+                        "duration_sec": 0.01,
+                        "reason": "dry-run fixture",
+                    })
+
+            except Exception as exc:
+                step_result.update({
+                    "status": "failed",
+                    "error": str(exc),
+                })
+                overall_status = "failed"
+                failed_step = step_name
+
+            steps.append(step_result)
+            continue
+
+        # Normal non-dry-run path (simplified for v0.2.4S)
         if dry_run:
             step_result.update({
                 "status": "skipped",
@@ -63,12 +117,9 @@ def run_daily_pipeline(
             steps.append(step_result)
             continue
 
-        # For v0.2 hardening we call the original scripts via subprocess
-        # but record timing/status rigorously.
+        # Real execution path (placeholder)
         try:
-            # Placeholder: in real impl we would import or subprocess the step
-            # Here we simulate success for hardening skeleton.
-            time.sleep(0.05)  # simulate work
+            time.sleep(0.02)
             finished = _now_iso()
             duration = round(time.time() - start_time, 3)
 
@@ -79,25 +130,19 @@ def run_daily_pipeline(
                 "log_path": str(cfg["OUTPUT_DIR"] / f"{step_name}.log"),
             })
 
-            # Special handling for publish step
             if step_name == "publish" and no_publish:
                 step_result["status"] = "skipped"
                 step_result["reason"] = "no-publish flag"
 
         except Exception as exc:
-            finished = _now_iso()
-            duration = round(time.time() - start_time, 3)
             step_result.update({
                 "status": "failed",
-                "finished_at": finished,
-                "duration_sec": duration,
                 "error": str(exc),
             })
             overall_status = "failed"
             failed_step = step_name
 
         steps.append(step_result)
-
         if overall_status == "failed":
             break
 

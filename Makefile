@@ -1,11 +1,17 @@
-.PHONY: validate validate-soft validate-smoke daily status smoke health install legacy-validate
+.PHONY: validate validate-soft validate-smoke daily status smoke health install legacy-validate release-check
 
 PYTHON ?= python3
 BASE ?= $(CURDIR)
 SCRIPTS := $(BASE)/scripts
 PKG := newsletter-ai
 
+release-check:
+	@echo "Running full pytest as release gate..."
+	$(PYTHON) -m pytest --tb=no
+	@echo "Release gate passed."
+
 validate:
+	$(MAKE) release-check
 	$(PKG) health
 
 validate-soft:

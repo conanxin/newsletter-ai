@@ -1,4 +1,4 @@
-"""CLI entrypoint for newsletter-ai v0.2.3."""
+"""CLI entrypoint for newsletter-ai v0.2.4S."""
 
 import argparse
 import json
@@ -13,7 +13,7 @@ from .feedback import apply_feedback, load_preferences, resolve_item_from_snapsh
 def main():
     parser = argparse.ArgumentParser(
         prog="newsletter-ai",
-        description="newsletter-ai v0.2.3 snapshot + ranking + feedback"
+        description="newsletter-ai v0.2.4S acceptance fix"
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -22,16 +22,16 @@ def main():
     daily_p.add_argument("--dry-run", action="store_true")
     daily_p.add_argument("--no-publish", action="store_true")
 
-    # feedback
+    # feedback - use a single string argument to avoid parser conflict
     fb_p = subparsers.add_parser("feedback", help="Apply feedback using snapshot")
-    fb_p.add_argument("command")
+    fb_p.add_argument("command", help='Full command string e.g. "like 1" or "source_up Stratechery"')
     fb_p.add_argument("--dry-run", action="store_true")
 
     # prefs
     prefs_p = subparsers.add_parser("prefs", help="Preferences")
     prefs_p.add_argument("subcmd", choices=["show", "explain", "reset"])
 
-    # items (new in v0.2.3)
+    # items
     items_p = subparsers.add_parser("items", help="Snapshot inspection")
     items_p.add_argument("subcmd", choices=["show", "explain"])
     items_p.add_argument("index", nargs="?", type=int)
@@ -72,7 +72,7 @@ def main():
             if item:
                 print(json.dumps(item, indent=2))
             else:
-                print(f"Item {args.index} not found in latest snapshot.")
+                print(f"Item {args.index} not found.")
         sys.exit(0)
 
     elif args.command == "health":

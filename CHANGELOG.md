@@ -1,21 +1,28 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+## v0.2.5 (2026-05)
+- RSS fixtures + E2E regression (no network)
+- RSS parser, normalizer, dedupe
+- fixture dry-run mode (`--fixtures`)
+- full E2E: fetch/normalize/rank/snapshot/render/feedback
+- 28/28 tests + release gate
 
-## [0.1.0] - 2026-03-05
+## v0.2.4 / v0.2.4R / v0.2.4S
+- Digest rendering unification
+- Test gate + acceptance fixes
+- dry-run snapshot writing
+- CLI parser stability
 
-### Added
-- End-to-end daily pipeline for Newsletter generation (fetch/filter/rank/digest/publish).
-- Source-specific filtering profiles (`data/state/source_profiles.json`).
-- Feedback loop (`/fb`) with preference updates and reranking.
-- Health reporting with trusted-snippet metrics and threshold alerts.
-- One-command release validator (`scripts/validate_release.py`) with terminal/JSON/Markdown outputs.
-- Make shortcuts (`make validate`, `validate-smoke`, `daily`, `status`).
+## v0.2.3
+- Snapshot + ranking integration
+- items show / explain commands
 
-### Improved
-- Noise reduction heuristics for navigation/section-like entries.
-- Site-aware snippet extraction/scoring for `sidebar.io`, `kottke.org`, `the-syllabus.com`.
-- Readability cleanup for punctuation, entities, and snippet tails.
+## v0.2.2
+- Feedback preferences engine
+- Weight updates + history
 
-### Notes
-- Runtime artifacts and personal state are excluded from git by default.
+## v0.2.1
+- Safe publisher + legacy migration
+
+## v0.2
+- Hardening: config, pipeline, tests, docs

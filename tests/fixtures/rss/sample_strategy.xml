@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+<title>Strategy Blog</title>
+<link>https://example.com/strategy</link>
+<item>
+<title>Deep Tech Analysis</title>
+<link>https://example.com/strategy/1</link>
+<guid>strat-1</guid>
+<pubDate>Mon, 18 May 2026 12:00:00 GMT</pubDate>
+<description>Long form analysis of tech trends.</description>
+</item>
+</channel>
+</rss>
