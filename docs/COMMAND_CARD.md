@@ -40,9 +40,20 @@
 - newsletter-ai items show
 - newsletter-ai items explain 1
 
-## Feedback
+## Feedback (v0.3.13 hardened)
 - newsletter-ai feedback "like 1" --dry-run
+- newsletter-ai feedback like 1 --dry-run
+- newsletter-ai feedback "source_up Stratechery" --dry-run
+- newsletter-ai feedback source_up Stratechery --dry-run
+- newsletter-ai feedback save 2 --note "值得深挖" --dry-run
+- newsletter-ai feedback "save 2 --note 值得深挖" --dry-run
 - newsletter-ai prefs explain
+
+### Parser behavior
+- Accepts both quoted string and space-separated tokens
+- `--dry-run` can appear at the end
+- `--note` is a standalone flag, and also parsed from inside quoted strings
+- Invalid actions and missing arguments produce clear error messages without traceback
 
 ## Status
 - newsletter-ai health

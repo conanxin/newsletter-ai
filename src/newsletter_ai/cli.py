@@ -33,10 +33,11 @@ def main():
         help="Allow real network requests for rss_url sources (requires --dry-run or --no-publish)."
     )
 
-    # feedback
+    # feedback (v0.3.13: hardened parser)
     fb_p = subparsers.add_parser("feedback", help="Apply feedback using snapshot")
-    fb_p.add_argument("command", help='Full command string e.g. "like 1" or "source_up Stratechery"')
+    fb_p.add_argument("tokens", nargs="*", help="Feedback tokens: like 1, source_up Stratechery, save 2 --note ...")
     fb_p.add_argument("--dry-run", action="store_true")
+    fb_p.add_argument("--note", default=None, help="Optional note for save action")
 
     # prefs
     prefs_p = subparsers.add_parser("prefs", help="Preferences")
@@ -92,7 +93,60 @@ def main():
         sys.exit(0 if status.get("status") == "success" else 1)
 
     elif args.command == "feedback":
-        result = apply_feedback(args.command, cfg, dry_run=getattr(args, "dry_run", False))
+        tokens = getattr(args, "tokens", [])
+        note = getattr(args, "note", None)
+
+        # Normalize: join tokens and re-split to handle both quoted strings and token lists
+        raw = " ".join(tokens).strip()
+
+        # v0.3.13R: extract --note from inside quoted string if present
+        # This handles: feedback "save 2 --note 值得深挖" --dry-run
+        if "--note" in raw and note is None:
+            note_parts = raw.split("--note", 1)
+            if len(note_parts) == 2:
+                raw = note_parts[0].strip()
+                note = note_parts[1].strip()
+
+        if not raw:
+            print("ERROR: empty feedback command")
+            print("Usage: newsletter-ai feedback <action> [<index>|<source>] [--note <text>] [--dry-run]")
+            sys.exit(1)
+
+        # Parse action and remaining args
+        parts = raw.split()
+        action = parts[0]
+
+        # Known actions that take an index
+        index_actions = {"like", "dislike", "save", "skip", "explain"}
+        # Known actions that take a source/topic/style name
+        name_actions = {"source_up", "source_down", "topic_up", "topic_down", "style_up", "style_down"}
+
+        if action not in index_actions and action not in name_actions:
+            print(f"ERROR: unknown feedback action '{action}'")
+            print(f"Supported actions: {sorted(index_actions | name_actions)}")
+            sys.exit(1)
+
+        # Build command string for apply_feedback
+        command_parts = [action]
+
+        if action in index_actions:
+            if len(parts) < 2:
+                print(f"ERROR: '{action}' requires an item index (e.g., '{action} 1')")
+                sys.exit(1)
+            if not parts[1].isdigit():
+                print(f"ERROR: '{action}' requires a numeric index, got '{parts[1]}'")
+                sys.exit(1)
+            command_parts.append(parts[1])
+        elif action in name_actions:
+            if len(parts) < 2:
+                print(f"ERROR: '{action}' requires a target name (e.g., '{action} Stratechery')")
+                sys.exit(1)
+            command_parts.append(parts[1])
+
+        command_str = " ".join(command_parts)
+        dry_run = getattr(args, "dry_run", False)
+
+        result = apply_feedback(command_str, cfg, dry_run=dry_run, note=note)
         print(result)
         sys.exit(0)
 

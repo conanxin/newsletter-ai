@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.13 (2026-05)
+- CLI Feedback Parser Hardening
+- Fixed `feedback` subcommand to accept both quoted and unquoted command forms:
+  - `newsletter-ai feedback "like 1" --dry-run`
+  - `newsletter-ai feedback like 1 --dry-run`
+  - `newsletter-ai feedback "source_up Stratechery" --dry-run`
+  - `newsletter-ai feedback source_up Stratechery --dry-run`
+- Added `--note` support for `save` action:
+  - `newsletter-ai feedback save 2 --note "值得深挖" --dry-run`
+  - `newsletter-ai feedback "save 2 --note 值得深挖" --dry-run` (quoted string with inline --note)
+- Note is persisted to feedback event as optional field; preferences update logic unaffected
+- Hardened parser with clear error messages for invalid actions and missing arguments (no traceback)
+- Added `tests/test_cli_feedback_parser.py` with 11 tests covering quoted/unquoted forms, --note, and graceful errors
+- No changes to underlying feedback event schema or preferences update logic
+- No network access, no Telegram sending
+
 ## v0.3.12 (2026-05)
 - Controlled Real RSS Fetch Prototype
 - Added `src/newsletter_ai/fetch.py`: `fetch_url()` and `fetch_rss_url_source()`

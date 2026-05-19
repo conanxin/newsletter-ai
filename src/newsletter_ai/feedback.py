@@ -106,7 +106,7 @@ def resolve_item_from_snapshot(data_dir: Path, output_dir: Path, item_index: int
     return items[item_index - 1]
 
 
-def apply_feedback(command: str, cfg: Dict, dry_run: bool = False) -> str:
+def apply_feedback(command: str, cfg: Dict, dry_run: bool = False, note: Optional[str] = None) -> str:
     data_dir = Path(cfg.get("DATA_DIR", "data"))
     output_dir = Path(cfg.get("OUTPUT_DIR", "output"))
 
@@ -132,7 +132,8 @@ def apply_feedback(command: str, cfg: Dict, dry_run: bool = False) -> str:
 
     if dry_run:
         meta = resolved or {"source": target}
-        return f"[DRY-RUN] would apply {action} on {meta.get('title') or target}"
+        note_hint = f" (note: {note})" if note else ""
+        return f"[DRY-RUN] would apply {action} on {meta.get('title') or target}{note_hint}"
 
     event = record_feedback_event(
         data_dir,
@@ -143,6 +144,7 @@ def apply_feedback(command: str, cfg: Dict, dry_run: bool = False) -> str:
         url=resolved.get("url") if resolved else None,
         topic_tags=resolved.get("topic_tags") if resolved else [],
         style_tags=resolved.get("style_tags") if resolved else [],
+        note=note,
     )
 
     result = update_preferences(data_dir, action=action, source=event.get("source"))
