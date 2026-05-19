@@ -1,4 +1,4 @@
-"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality."""
+"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality + v0.3.9 source registry."""
 
 import argparse
 import json
@@ -13,7 +13,7 @@ from .feedback import apply_feedback, load_preferences, resolve_item_from_snapsh
 def main():
     parser = argparse.ArgumentParser(
         prog="newsletter-ai",
-        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality"
+        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality + v0.3.9 source registry"
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -43,6 +43,10 @@ def main():
     # quality (v0.3.4: added "sections")
     quality_p = subparsers.add_parser("quality", help="Quality report commands")
     quality_p.add_argument("subcmd", choices=["show", "json", "explain", "sources", "duplicates", "sections"])
+
+    # sources (v0.3.9)
+    sources_p = subparsers.add_parser("sources", help="Source registry commands")
+    sources_p.add_argument("subcmd", choices=["list", "validate", "ingest-fixtures"])
 
     args = parser.parse_args()
     cfg = load_config()
@@ -87,6 +91,56 @@ def main():
     elif args.command == "status":
         from .status import check_pipeline_status
         print(check_pipeline_status(cfg))
+        sys.exit(0)
+
+    elif args.command == "sources":
+        from .sources import load_source_registry, validate_source_registry, ingest_offline_sources, enabled_sources
+        registry_path = Path(__file__).parent.parent.parent / "data" / "fixtures" / "source_registry.json"
+        if not registry_path.exists():
+            print(f"No source registry found at {registry_path}")
+            print("Run daily --dry-run or create data/fixtures/source_registry.json")
+            sys.exit(1)
+
+        if args.subcmd == "list":
+            sources = load_source_registry(registry_path)
+            print(f"{'Source ID':<20} {'Name':<25} {'Type':<15} {'Enabled':<8}")
+            print("-" * 70)
+            for s in sources:
+                print(f"{s.get('source_id',''):<20} {s.get('name',''):<25} {s.get('type',''):<15} {str(s.get('enabled',True)):<8}")
+
+        elif args.subcmd == "validate":
+            sources = load_source_registry(registry_path)
+            result = validate_source_registry(sources)
+            if result["valid"]:
+                print("Source registry is valid.")
+                for s in sources:
+                    fixture = s.get("fixture_path", "")
+                    if fixture:
+                        exists = (Path(__file__).parent.parent.parent / fixture).exists()
+                        status = "OK" if exists else "MISSING"
+                        print(f"  {s['source_id']}: fixture {status}")
+            else:
+                print("Source registry has errors:")
+                for e in result["errors"]:
+                    print(f"  - {e}")
+                sys.exit(1)
+
+        elif args.subcmd == "ingest-fixtures":
+            sources = load_source_registry(registry_path)
+            enabled = enabled_sources(sources)
+            items = ingest_offline_sources(enabled)
+            print(f"Ingested {len(items)} items from {len(enabled)} enabled sources.")
+            source_counts = {}
+            for item in items:
+                src = item.get("source", "unknown")
+                source_counts[src] = source_counts.get(src, 0) + 1
+            print("Source breakdown:")
+            for src, count in sorted(source_counts.items(), key=lambda x: -x[1]):
+                print(f"  {src}: {count}")
+            print("Sample titles:")
+            for item in items[:5]:
+                print(f"  - {item.get('title', '(untitled)')}")
+
         sys.exit(0)
 
     elif args.command == "quality":

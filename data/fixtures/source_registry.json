@@ -1,0 +1,32 @@
+[
+  {
+    "source_id": "sample-ai-feed",
+    "name": "Sample AI Feed",
+    "type": "rss_fixture",
+    "enabled": true,
+    "fixture_path": "tests/fixtures/e2e_rss_sample.xml",
+    "topic_hints": ["ai", "llm"],
+    "style_hints": ["analysis"],
+    "quality_weight": 1.0
+  },
+  {
+    "source_id": "sample-business-feed",
+    "name": "Sample Business Feed",
+    "type": "rss_fixture",
+    "enabled": true,
+    "fixture_path": "tests/fixtures/e2e_rss_sample.xml",
+    "topic_hints": ["business", "strategy"],
+    "style_hints": ["essay"],
+    "quality_weight": 1.0
+  },
+  {
+    "source_id": "disabled-sample",
+    "name": "Disabled Sample",
+    "type": "rss_fixture",
+    "enabled": false,
+    "fixture_path": "tests/fixtures/e2e_rss_sample.xml",
+    "topic_hints": [],
+    "style_hints": [],
+    "quality_weight": 0.5
+  }
+]

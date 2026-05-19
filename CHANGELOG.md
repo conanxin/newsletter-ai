@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.3.9 (2026-05)
+- Source Registry + Offline Ingestion Bridge
+- Added `src/newsletter_ai/sources.py` with source registry loader and offline ingestion
+- Added `data/fixtures/source_registry.json` with sample RSS fixture sources
+- Added CLI commands:
+  - `newsletter-ai sources list`
+  - `newsletter-ai sources validate`
+  - `newsletter-ai sources ingest-fixtures`
+- Source registry supports `rss_fixture` type with topic_hints/style_hints merging
+- Disabled sources are filtered out during ingestion
+- Graceful error handling for missing fixtures and invalid registry entries
+- All operations are offline-only (no network requests)
+
 ## v0.3.8 (2026-05)
 - RSS Fixture Parser + Ingestion Normalization
 - Added `src/newsletter_ai/rss.py`: `parse_rss_xml()` and `parse_rss_file()`
