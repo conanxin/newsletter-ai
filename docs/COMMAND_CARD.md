@@ -1,13 +1,12 @@
-# Command Card v0.3.6
+# Command Card v0.3.8
 
 ## Release Gate
 - make release-check
 - make validate
 
-## Daily Dry-Run (now uses unified fixture)
+## Daily Dry-Run
 - newsletter-ai daily --dry-run
-- Uses data/fixtures/dry_run_items.json by default
-- Generates snapshot, sectioned digest, telegram text, and quality report
+- Uses data/fixtures/dry_run_items.json by default (normalized)
 
 ## Inspection
 - newsletter-ai items show
@@ -28,11 +27,16 @@
 - newsletter-ai quality duplicates
 - newsletter-ai quality sections
 
-## v0.3.6 Fixture Unification
-- src/newsletter_ai/fixtures.py: load_dry_run_items()
-- data/fixtures/dry_run_items.json: official dry-run fixture
-- E2E tests and CLI dry-run now share the same loader
-- Reduced behavior drift between test and production dry-run
+## v0.3.8 RSS Fixture Parser
+- src/newsletter_ai/rss.py: parse_rss_xml() / parse_rss_file()
+- tests/fixtures/e2e_rss_sample.xml
+- load_rss_fixture_items("e2e") in fixtures.py
+- RSS items are normalized via normalize.py
+- JSON dry-run fixture remains default (no breaking change)
 
-## v0.3.5 E2E Regression
-- Full offline E2E test using fixture data
+## v0.3.7 Normalization Layer
+- src/newsletter_ai/normalize.py
+- Stable item_id, graceful missing field handling
+
+## v0.3.6 Fixture Unification
+- Unified dry-run and E2E fixture sources

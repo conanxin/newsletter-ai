@@ -1,60 +1,63 @@
-"""RSS fixture parser for v0.2.5 (no network)."""
+"""RSS Fixture Parser (v0.3.8)
+
+This module parses local RSS XML fixtures only.
+It does not perform any network requests.
+"""
 
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List
-from hashlib import md5
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
-def parse_rss(xml_content: str, source_name: str = "unknown") -> List[Dict[str, Any]]:
-    """Parse RSS XML string into normalized items."""
-    items: List[Dict[str, Any]] = []
+def _get_text(element: Optional[ET.Element], tag: str) -> str:
+    """Safely get text content from a child element."""
+    if element is None:
+        return ""
+    child = element.find(tag)
+    return child.text.strip() if child is not None and child.text else ""
+
+
+def parse_rss_xml(xml_text: str) -> List[Dict[str, Any]]:
+    """Parse RSS XML text and return a list of raw items."""
     try:
-        root = ET.fromstring(xml_content)
-    except ET.ParseError:
-        return items  # graceful failure on malformed
+        root = ET.fromstring(xml_text)
+    except ET.ParseError as e:
+        raise ValueError(f"Invalid RSS XML: {e}")
 
     channel = root.find("channel")
     if channel is None:
-        return items
+        raise ValueError("RSS XML missing <channel> element")
 
-    feed_title = (channel.findtext("title") or source_name).strip()
+    channel_title = _get_text(channel, "title")
+    items: List[Dict[str, Any]] = []
 
-    for item in channel.findall("item"):
-        title = (item.findtext("title") or "").strip()
-        link = (item.findtext("link") or "").strip()
-        guid = (item.findtext("guid") or "").strip()
-        pub_date = (item.findtext("pubDate") or "").strip()
-        description = (item.findtext("description") or "").strip()
+    for item_elem in channel.findall("item"):
+        title = _get_text(item_elem, "title")
+        link = _get_text(item_elem, "link")
+        description = _get_text(item_elem, "description")
+        pub_date = _get_text(item_elem, "pubDate")
+        author = _get_text(item_elem, "author")
+        category = _get_text(item_elem, "category")
 
-        if not title and not link:
-            continue
-
-        # item_id priority: guid > link hash > title+source hash
-        if guid:
-            item_id = guid
-        elif link:
-            item_id = md5(link.encode()).hexdigest()[:12]
-        else:
-            item_id = md5(f"{title}{source_name}".encode()).hexdigest()[:12]
-
-        items.append({
-            "item_id": item_id,
-            "source": feed_title,
+        raw_item = {
             "title": title,
-            "url": link,
-            "summary": description[:300] if description else "",
-            "published_at": pub_date,
-            "topic_tags": [],
-            "style_tags": [],
-            "raw": {"guid": guid, "link": link},
-        })
+            "link": link,
+            "description": description,
+            "pubDate": pub_date,
+            "author": author,
+            "category": category,
+            "source": channel_title,
+            "raw_source_type": "rss",
+        }
+        items.append(raw_item)
 
     return items
 
 
-def load_rss_file(path: str, source_name: str = None) -> List[Dict[str, Any]]:
-    """Load RSS from local file."""
-    with open(path, "r", encoding="utf-8") as f:
-        content = f.read()
-    name = source_name or path.split("/")[-1].replace(".xml", "")
-    return parse_rss(content, name)
+def parse_rss_file(path: Path) -> List[Dict[str, Any]]:
+    """Parse an RSS XML file from disk."""
+    if not path.exists():
+        raise FileNotFoundError(f"RSS fixture not found: {path}")
+
+    xml_text = path.read_text(encoding="utf-8")
+    return parse_rss_xml(xml_text)

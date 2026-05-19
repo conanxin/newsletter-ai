@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>AI &amp; Tech Daily</title>
+    <link>https://example.com</link>
+    <description>Latest in AI, business and media</description>
+    <item>
+      <title>OpenAI Releases New Reasoning Model</title>
+      <link>https://example.com/openai-reasoning</link>
+      <description>OpenAI has launched a new model focused on step-by-step reasoning and chain-of-thought capabilities.</description>
+      <pubDate>Mon, 19 May 2026 08:00:00 GMT</pubDate>
+      <author>techcrunch@example.com</author>
+      <category>AI</category>
+    </item>
+    <item>
+      <title>The Economics of Foundation Models</title>
+      <link>https://example.com/economics-foundation-models</link>
+      <description>Deep analysis on the business models behind large AI models and their monetization strategies.</description>
+      <pubDate>Mon, 19 May 2026 07:30:00 GMT</pubDate>
+      <author>stratechery@example.com</author>
+      <category>Business</category>
+    </item>
+    <item>
+      <title>Anthropic Raises $1.5B for Safety Research</title>
+      <link>https://example.com/anthropic-funding</link>
+      <description>Anthropic secures major funding round to advance AI safety and alignment research.</description>
+      <pubDate>Mon, 19 May 2026 06:45:00 GMT</pubDate>
+      <author>techcrunch@example.com</author>
+      <category>AI</category>
+    </item>
+    <item>
+      <title>The Rise of AI-Generated Media</title>
+      <link>https://example.com/ai-media</link>
+      <description>How generative AI is transforming film, music, and digital art creation workflows.</description>
+      <pubDate>Mon, 19 May 2026 05:20:00 GMT</pubDate>
+      <author>theverge@example.com</author>
+      <category>Media</category>
+    </item>
+    <item>
+      <title>Why Strategy Still Matters in the AI Era</title>
+      <link>https://example.com/strategy-ai-era</link>
+      <description>Even with powerful models, strategic thinking and business judgment remain critical.</description>
+      <pubDate>Mon, 19 May 2026 04:10:00 GMT</pubDate>
+      <author>stratechery@example.com</author>
+      <category>Business</category>
+    </item>
+    <item>
+      <title>OpenAI Releases New Reasoning Model</title>
+      <link>https://example.com/openai-reasoning</link>
+      <description>OpenAI has launched a new model focused on step-by-step reasoning and chain-of-thought capabilities.</description>
+      <pubDate>Mon, 19 May 2026 08:00:00 GMT</pubDate>
+      <author>techcrunch@example.com</author>
+      <category>AI</category>
+    </item>
+    <item>
+      <title>The Future of Work in an AI World</title>
+      <link>https://example.com/future-work-ai</link>
+      <pubDate>Mon, 19 May 2026 03:00:00 GMT</pubDate>
+      <author>nytimes@example.com</author>
+      <category>Business</category>
+    </item>
+  </channel>
+</rss>

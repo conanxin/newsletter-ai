@@ -1,22 +1,33 @@
 # Changelog
 
+## v0.3.8 (2026-05)
+- RSS Fixture Parser + Ingestion Normalization
+- Added `src/newsletter_ai/rss.py`: `parse_rss_xml()` and `parse_rss_file()`
+- Added `tests/fixtures/e2e_rss_sample.xml` with 7 items (including duplicates and missing fields)
+- Extended `src/newsletter_ai/fixtures.py` with `load_rss_fixture_items()` and `load_rss_fixture_items_from_path()`
+- RSS items are normalized via `normalize_items()` before entering the pipeline
+- JSON dry-run fixture remains the default for `daily --dry-run`
+- Added `tests/test_rss.py`
+- All changes are offline-only (no network requests)
+
+## v0.3.7 (2026-05)
+- Source Normalization Layer
+- Added `src/newsletter_ai/normalize.py` with `normalize_item()`, `normalize_items()`, and `validate_normalized_item()`
+- Stable `item_id` generation based on URL or source+title
+- Integrated normalization into fixture loading
+- Added `tests/test_normalize.py`
+
 ## v0.3.6 (2026-05)
 - Dry-run Fixture Source Unification
-- Created src/newsletter_ai/fixtures.py with load_dry_run_items() and normalize_fixture_item()
-- Created data/fixtures/dry_run_items.json as the official dry-run fixture source
-- pipeline.py now uses the shared fixture loader in dry-run mode instead of hardcoded mock
-- E2E tests now reuse the production fixture loader
-- newsletter-ai daily --dry-run now produces consistent output with E2E tests
-- Added tests/test_fixtures.py and tests/test_dry_run_fixture_unification.py
-- No breaking changes to existing CLI behavior
+- Created `src/newsletter_ai/fixtures.py`
+- Created `data/fixtures/dry_run_items.json`
+- Unified dry-run and E2E fixture sources
 
 ## v0.3.5 (2026-05)
 - Fixture-based End-to-End Regression
-- New fixture: tests/fixtures/e2e_items.json
-- New E2E test: tests/test_e2e_fixture_flow.py
-- Full chain coverage from fixture to feedback and preferences
-- All tests remain offline
+- Added `tests/test_e2e_fixture_flow.py`
+- Full chain coverage from fixture to feedback and preferences history
 
 ## v0.3.4 (2026-05)
 - Section-aware Quality Polish
-- Enhanced section_distribution and new CLI command quality sections
+- Enhanced `section_distribution` and added `quality sections` command
