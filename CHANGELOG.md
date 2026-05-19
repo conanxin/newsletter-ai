@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.3.11 (2026-05)
+- Source Ingestion Report + Failure Resilience
+- Added `ingest_offline_sources_with_report()` returning items + per-source report
+- Per-source status tracking: success / failed / disabled / empty
+- Single source failure no longer crashes entire ingestion
+- Missing fixture_path → failed report
+- Fixture file not found → failed report
+- Empty parsed items → empty report with warning
+- All-failed registry → pipeline graceful fail with clear error
+- `last-run-status.json` records `ingestion_report` summary
+- `newsletter-ai sources ingest-fixtures` shows per-source status table
+- `newsletter-ai sources report` displays latest ingestion report
+- `newsletter-ai status` shows ingestion summary from last run
+- Added `tests/test_source_ingestion_report.py`
+- Added `tests/test_pipeline_source_failure_resilience.py`
+- Added `tests/test_cli_sources_report.py`
+
 ## v0.3.10 (2026-05)
 - Controlled Offline Source Pipeline
 - Added `--source-registry` CLI argument to `daily --dry-run`

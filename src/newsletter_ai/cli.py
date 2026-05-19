@@ -1,4 +1,4 @@
-"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline."""
+"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline + v0.3.11 source ingestion report."""
 
 import argparse
 import json
@@ -13,7 +13,7 @@ from .feedback import apply_feedback, load_preferences, resolve_item_from_snapsh
 def main():
     parser = argparse.ArgumentParser(
         prog="newsletter-ai",
-        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline"
+        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline + v0.3.11 source ingestion report"
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -50,9 +50,9 @@ def main():
     quality_p = subparsers.add_parser("quality", help="Quality report commands")
     quality_p.add_argument("subcmd", choices=["show", "json", "explain", "sources", "duplicates", "sections"])
 
-    # sources (v0.3.9)
+    # sources (v0.3.9, v0.3.11: added "report")
     sources_p = subparsers.add_parser("sources", help="Source registry commands")
-    sources_p.add_argument("subcmd", choices=["list", "validate", "ingest-fixtures"])
+    sources_p.add_argument("subcmd", choices=["list", "validate", "ingest-fixtures", "report"])
 
     args = parser.parse_args()
     cfg = load_config()
@@ -115,7 +115,7 @@ def main():
         sys.exit(0)
 
     elif args.command == "sources":
-        from .sources import load_source_registry, validate_source_registry, ingest_offline_sources, enabled_sources
+        from .sources import load_source_registry, validate_source_registry, ingest_offline_sources_with_report, enabled_sources
         registry_path = Path(__file__).parent.parent.parent / "data" / "fixtures" / "source_registry.json"
         if not registry_path.exists():
             print(f"No source registry found at {registry_path}")
@@ -148,19 +148,50 @@ def main():
 
         elif args.subcmd == "ingest-fixtures":
             sources = load_source_registry(registry_path)
-            enabled = enabled_sources(sources)
-            items = ingest_offline_sources(enabled)
-            print(f"Ingested {len(items)} items from {len(enabled)} enabled sources.")
-            source_counts = {}
-            for item in items:
-                src = item.get("source", "unknown")
-                source_counts[src] = source_counts.get(src, 0) + 1
-            print("Source breakdown:")
-            for src, count in sorted(source_counts.items(), key=lambda x: -x[1]):
-                print(f"  {src}: {count}")
-            print("Sample titles:")
-            for item in items[:5]:
-                print(f"  - {item.get('title', '(untitled)')}")
+            result = ingest_offline_sources_with_report(sources)
+            items = result["items"]
+            report = result["report"]
+            print(f"Ingested {len(items)} items from {report['source_count_enabled']} enabled sources.")
+            print(f"Total: {report['source_count_total']} | Enabled: {report['source_count_enabled']} | Disabled: {report['source_count_disabled']} | Success: {report['source_count_success']} | Failed: {report['source_count_failed']} | Empty: {report['source_count_empty']}")
+            print("\nPer-source status:")
+            for s in report["sources"]:
+                status_icon = "✓" if s["status"] == "success" else "✗" if s["status"] == "failed" else "-"
+                print(f"  {status_icon} {s['source_id']:<20} {s['status']:<10} raw={s['item_count_raw']:<3} norm={s['item_count_normalized']:<3}  {s['name']}")
+                if s.get("errors"):
+                    for err in s["errors"]:
+                        print(f"      ERROR: {err}")
+                if s.get("warnings"):
+                    for warn in s["warnings"]:
+                        print(f"      WARN:  {warn}")
+            # Save report for later retrieval
+            report_dir = cfg["OUTPUT_DIR"] / "reports"
+            report_dir.mkdir(parents=True, exist_ok=True)
+            report_file = report_dir / "latest_source_ingestion_report.json"
+            report_file.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+
+        elif args.subcmd == "report":
+            report_dir = cfg["OUTPUT_DIR"] / "reports"
+            report_file = report_dir / "latest_source_ingestion_report.json"
+            if report_file.exists():
+                report = json.loads(report_file.read_text(encoding="utf-8"))
+                print(f"Source Ingestion Report ({report['created_at']})")
+                print(f"Run ID: {report['run_id']}")
+                print(f"Total: {report['source_count_total']} | Enabled: {report['source_count_enabled']} | Disabled: {report['source_count_disabled']}")
+                print(f"Success: {report['source_count_success']} | Failed: {report['source_count_failed']} | Empty: {report['source_count_empty']}")
+                print(f"Total items: {report['total_items']}")
+                print("\nPer-source status:")
+                for s in report["sources"]:
+                    status_icon = "✓" if s["status"] == "success" else "✗" if s["status"] == "failed" else "-"
+                    print(f"  {status_icon} {s['source_id']:<20} {s['status']:<10} raw={s['item_count_raw']:<3} norm={s['item_count_normalized']:<3}  {s['name']}")
+                    if s.get("errors"):
+                        for err in s["errors"]:
+                            print(f"      ERROR: {err}")
+                    if s.get("warnings"):
+                        for warn in s["warnings"]:
+                            print(f"      WARN:  {warn}")
+            else:
+                print("No source ingestion report found. Run: newsletter-ai sources ingest-fixtures")
+                sys.exit(1)
 
         sys.exit(0)
 

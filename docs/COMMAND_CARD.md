@@ -1,4 +1,4 @@
-# Command Card v0.3.10
+# Command Card v0.3.11
 
 ## Release Gate
 - make release-check
@@ -12,14 +12,17 @@
 - newsletter-ai daily --dry-run --source-registry data/fixtures/source_registry.json
 - Reads enabled rss_fixture sources from registry
 - Requires --dry-run or --no-publish
-- Records input_mode / source_count / item_count in last-run-status
+- Records input_mode / source_count / item_count / ingestion_report in last-run-status
 
-## Source Registry (v0.3.9)
+## Source Registry (v0.3.9, v0.3.11)
 - newsletter-ai sources list
 - newsletter-ai sources validate
 - newsletter-ai sources ingest-fixtures
+- newsletter-ai sources report
 - Registry: data/fixtures/source_registry.json
 - Supports rss_fixture type (offline only)
+- Per-source status: success / failed / disabled / empty
+- Single source failure does not crash entire ingestion
 
 ## Inspection
 - newsletter-ai items show

@@ -1,4 +1,4 @@
-"""v0.2.4S Pipeline runner with full dry-run snapshot support + v0.3.10 source registry mode."""
+"""v0.2.4S Pipeline runner with full dry-run snapshot support + v0.3.10 source registry mode + v0.3.11 ingestion report."""
 
 import json
 import time
@@ -43,6 +43,7 @@ def run_daily_pipeline(
     input_mode = "fixture_json"
     source_count = 0
     item_count = 0
+    ingestion_report: Optional[Dict[str, Any]] = None
 
     pipeline_steps = [
         ("fetch", "scripts/fetch_rss_minimal.py"),
@@ -56,7 +57,7 @@ def run_daily_pipeline(
         started = _now_iso()
         start_time = time.time()
 
-        step_result = {
+        step_result: Dict[str, Any] = {
             "name": step_name,
             "command": script,
             "started_at": started,
@@ -69,7 +70,7 @@ def run_daily_pipeline(
                 if step_name == "rank":
                     from .ranking import rank_items
                     from .fixtures import load_dry_run_items, normalize_fixture_item
-                    from .sources import load_source_registry, validate_source_registry, enabled_sources, ingest_offline_sources
+                    from .sources import load_source_registry, validate_source_registry, enabled_sources, ingest_offline_sources_with_report
 
                     if source_registry is not None and source_registry.exists():
                         # v0.3.10: controlled offline source registry mode
@@ -78,12 +79,31 @@ def run_daily_pipeline(
                         if not validation["valid"]:
                             raise ValueError(f"Source registry invalid: {validation['errors']}")
 
-                        enabled = enabled_sources(registry_sources)
-                        raw_items = ingest_offline_sources(enabled)
+                        result = ingest_offline_sources_with_report(registry_sources)
+                        raw_items = result["items"]
+                        ingestion_report = result["report"]
                         input_mode = "source_registry"
-                        source_count = len(enabled)
+                        source_count = ingestion_report["source_count_enabled"]
                         item_count = len(raw_items)
                         normalized_items = raw_items
+
+                        # v0.3.11: if all enabled sources failed, pipeline should fail gracefully
+                        if ingestion_report["source_count_success"] == 0 and ingestion_report["source_count_enabled"] > 0:
+                            step_result["status"] = "failed"
+                            step_result["finished_at"] = _now_iso()
+                            step_result["duration_sec"] = round(time.time() - start_time, 3)
+                            step_result["error"] = "All enabled sources failed ingestion"
+                            step_result["ingestion_report_summary"] = {
+                                "source_count_total": ingestion_report["source_count_total"],
+                                "source_count_enabled": ingestion_report["source_count_enabled"],
+                                "source_count_success": ingestion_report["source_count_success"],
+                                "source_count_failed": ingestion_report["source_count_failed"],
+                                "total_items": ingestion_report["total_items"],
+                            }
+                            overall_status = "failed"
+                            failed_step = step_name
+                            steps.append(step_result)
+                            continue
                     else:
                         # Default v0.3.6 dry-run fixture mode
                         try:
@@ -98,12 +118,25 @@ def run_daily_pipeline(
 
                     ranked = rank_items(normalized_items, cfg)
                     cfg["_ranked_items"] = ranked
-                    step_result.update({
-                        "status": "success",
-                        "finished_at": _now_iso(),
-                        "duration_sec": round(time.time() - start_time, 3),
-                        "ranked_count": len(ranked),
-                    })
+                    step_result["status"] = "success"
+                    step_result["finished_at"] = _now_iso()
+                    step_result["duration_sec"] = round(time.time() - start_time, 3)
+                    step_result["ranked_count"] = len(ranked)
+
+                    # v0.3.11: attach ingestion report summary to rank step
+                    if ingestion_report is not None:
+                        step_result["ingestion_report_summary"] = {
+                            "source_count_total": ingestion_report["source_count_total"],
+                            "source_count_enabled": ingestion_report["source_count_enabled"],
+                            "source_count_success": ingestion_report["source_count_success"],
+                            "source_count_failed": ingestion_report["source_count_failed"],
+                            "source_count_empty": ingestion_report["source_count_empty"],
+                            "total_items": ingestion_report["total_items"],
+                            "failed_source_ids": [
+                                s["source_id"] for s in ingestion_report["sources"]
+                                if s.get("status") == "failed"
+                            ],
+                        }
 
                 elif step_name == "digest":
                     from .snapshot import create_item_snapshot
@@ -127,29 +160,23 @@ def run_daily_pipeline(
                     md_digest = render_markdown_digest(sections)
                     tg_digest = render_telegram_digest(sections)
 
-                    step_result.update({
-                        "status": "success",
-                        "finished_at": _now_iso(),
-                        "duration_sec": round(time.time() - start_time, 3),
-                        "snapshot": snap,
-                        "section_count": len(sections),
-                        "markdown_digest": md_digest[:200] + "..." if len(md_digest) > 200 else md_digest,
-                        "telegram_digest": tg_digest[:200] + "..." if len(tg_digest) > 200 else tg_digest,
-                    })
+                    step_result["status"] = "success"
+                    step_result["finished_at"] = _now_iso()
+                    step_result["duration_sec"] = round(time.time() - start_time, 3)
+                    step_result["snapshot"] = snap
+                    step_result["section_count"] = len(sections)
+                    step_result["markdown_digest"] = md_digest[:200] + "..." if len(md_digest) > 200 else md_digest
+                    step_result["telegram_digest"] = tg_digest[:200] + "..." if len(tg_digest) > 200 else tg_digest
 
                 else:  # fetch
-                    step_result.update({
-                        "status": "success",
-                        "finished_at": _now_iso(),
-                        "duration_sec": 0.01,
-                        "reason": "dry-run fixture",
-                    })
+                    step_result["status"] = "success"
+                    step_result["finished_at"] = _now_iso()
+                    step_result["duration_sec"] = 0.01
+                    step_result["reason"] = "dry-run fixture"
 
             except Exception as exc:
-                step_result.update({
-                    "status": "failed",
-                    "error": str(exc),
-                })
+                step_result["status"] = "failed"
+                step_result["error"] = str(exc)
                 overall_status = "failed"
                 failed_step = step_name
 
@@ -158,12 +185,10 @@ def run_daily_pipeline(
 
         # Normal non-dry-run path (simplified for v0.2.4S)
         if dry_run:
-            step_result.update({
-                "status": "skipped",
-                "finished_at": _now_iso(),
-                "duration_sec": 0.0,
-                "reason": "dry-run",
-            })
+            step_result["status"] = "skipped"
+            step_result["finished_at"] = _now_iso()
+            step_result["duration_sec"] = 0.0
+            step_result["reason"] = "dry-run"
             steps.append(step_result)
             continue
 
@@ -173,22 +198,18 @@ def run_daily_pipeline(
             finished = _now_iso()
             duration = round(time.time() - start_time, 3)
 
-            step_result.update({
-                "status": "success",
-                "finished_at": finished,
-                "duration_sec": duration,
-                "log_path": str(cfg["OUTPUT_DIR"] / f"{step_name}.log"),
-            })
+            step_result["status"] = "success"
+            step_result["finished_at"] = finished
+            step_result["duration_sec"] = duration
+            step_result["log_path"] = str(cfg["OUTPUT_DIR"] / f"{step_name}.log")
 
             if step_name == "publish" and no_publish:
                 step_result["status"] = "skipped"
                 step_result["reason"] = "no-publish flag"
 
         except Exception as exc:
-            step_result.update({
-                "status": "failed",
-                "error": str(exc),
-            })
+            step_result["status"] = "failed"
+            step_result["error"] = str(exc)
             overall_status = "failed"
             failed_step = step_name
 
@@ -196,7 +217,7 @@ def run_daily_pipeline(
         if overall_status == "failed":
             break
 
-    final_status = {
+    final_status: Dict[str, Any] = {
         "pipeline": "daily",
         "status": overall_status,
         "started_at": steps[0]["started_at"] if steps else _now_iso(),
@@ -209,6 +230,22 @@ def run_daily_pipeline(
         "source_count": source_count,
         "item_count": item_count,
     }
+
+    # v0.3.11: include ingestion report summary in last-run-status
+    if ingestion_report is not None:
+        final_status["ingestion_report"] = {
+            "source_count_total": ingestion_report["source_count_total"],
+            "source_count_enabled": ingestion_report["source_count_enabled"],
+            "source_count_disabled": ingestion_report["source_count_disabled"],
+            "source_count_success": ingestion_report["source_count_success"],
+            "source_count_failed": ingestion_report["source_count_failed"],
+            "source_count_empty": ingestion_report["source_count_empty"],
+            "total_items": ingestion_report["total_items"],
+            "failed_source_ids": [
+                s["source_id"] for s in ingestion_report["sources"]
+                if s.get("status") == "failed"
+            ],
+        }
 
     _write_last_run_status(final_status, cfg)
     return final_status
