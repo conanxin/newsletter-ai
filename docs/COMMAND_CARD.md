@@ -84,12 +84,41 @@
 - newsletter-ai quality duplicates
 - newsletter-ai quality sections
 
+## Replay (v0.3.15 governance)
+- newsletter-ai replay list
+- newsletter-ai replay list --replay-dir data/fixtures/replay
+- newsletter-ai replay inspect data/fixtures/replay/rss_xxx.xml
+- newsletter-ai replay validate
+- newsletter-ai replay promote data/fixtures/replay/rss_xxx.xml --source-id my-source --name "My Source"
+
+### Replay commands
+- `list` — show all replay fixtures with source_id, item_count, status, fetched_at
+- `inspect` — display metadata + first 3 item titles
+- `validate` — integrity check all replay pairs (sha256, item_count, parseability)
+- `promote` — output proposed `rss_replay` registry entry (dry-run only, does not write registry)
+
+### Sanitization
+- `sanitize_replay_xml()` strips tracking query params: utm_*, fbclid, gclid, mc_*
+- Preserves non-tracking params
+- Handles XML-escaped ampersands
+- Sanitized XML remains parseable
+
+## Feedback (v0.3.13 hardened)
+- newsletter-ai feedback "like 1" --dry-run
+- newsletter-ai feedback like 1 --dry-run
+- newsletter-ai feedback "source_up Stratechery" --dry-run
+- newsletter-ai feedback source_up Stratechery --dry-run
+- newsletter-ai feedback save 2 --note "值得深挖" --dry-run
+- newsletter-ai feedback "save 2 --note 值得深挖" --dry-run
+- newsletter-ai prefs explain
+
+### Parser behavior
+- Accepts both quoted string and space-separated tokens
+- `--dry-run` can appear at the end
+- `--note` is a standalone flag, and also parsed from inside quoted strings
+- Invalid actions and missing arguments produce clear error messages without traceback
+
 ## v0.3.12 Controlled Real RSS Fetch
-- src/newsletter_ai/fetch.py: fetch_url() / fetch_rss_url_source()
-- Standard library only (urllib.request), no heavy dependencies
-- Explicit allow_network=False default — no requests without opt-in
-- Structured FetchResult with ok, status_code, text, error, duration_sec
-- User-Agent: newsletter-ai/dev
 
 ## v0.3.8 RSS Fixture Parser
 - src/newsletter_ai/rss.py: parse_rss_xml() / parse_rss_file()

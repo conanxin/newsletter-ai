@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.3.15 (2026-05)
+- Replay Governance + Sanitization
+- `sanitize_replay_xml()` now strips common tracking query parameters from URLs:
+  - utm_source, utm_medium, utm_campaign, utm_term, utm_content
+  - fbclid, gclid, mc_cid, mc_eid
+  - Preserves non-tracking query params
+  - Handles XML-escaped ampersands (`&amp;`)
+  - Sanitized XML remains parseable by `parse_rss_xml()`
+- New replay metadata fields:
+  - `sanitized`: true/false
+  - `stripped_tracking_params_count`: int
+- New replay governance functions in `src/newsletter_ai/replay.py`:
+  - `validate_replay_metadata(metadata)` — checks required fields and item_count
+  - `validate_replay_pair(xml_path, metadata_path)` — integrity check (sha256, item_count, parseability)
+  - `list_replay_fixtures(replay_dir)` — directory listing with status
+- New CLI commands:
+  - `newsletter-ai replay list [--replay-dir]` — list all replay fixtures
+  - `newsletter-ai replay inspect <xml_path>` — show metadata + first 3 item titles
+  - `newsletter-ai replay validate [--replay-dir]` — validate all replay pairs
+  - `newsletter-ai replay promote <xml_path> --source-id <id> --name <name>` — output proposed rss_replay registry entry (dry-run only)
+- Tests:
+  - `tests/test_replay_sanitize.py` — 7 tests covering UTM/fbclid/gclid/mc_* stripping, preservation, parseability
+  - `tests/test_replay_governance.py` — 8 tests covering validate/list/save
+  - `tests/test_cli_replay.py` — 6 tests covering list/inspect/validate/promote CLI
+- All tests use mock XML, no real network dependency
+
 ## v0.3.14 (2026-05)
 - Controlled Network Smoke + Replay Fixture Capture
 - New module `src/newsletter_ai/replay.py`:

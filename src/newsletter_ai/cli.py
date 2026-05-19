@@ -65,6 +65,14 @@ def main():
     sources_p.add_argument("--replay-dir", type=Path, default=None, help="Directory for replay fixtures (default: data/fixtures/replay)")
     sources_p.add_argument("--source-id", default=None, help="Only process the specified source_id")
 
+    # replay (v0.3.15: governance)
+    replay_p = subparsers.add_parser("replay", help="Replay fixture governance commands")
+    replay_p.add_argument("subcmd", choices=["list", "inspect", "validate", "promote"])
+    replay_p.add_argument("path", nargs="?", help="Path to replay XML for inspect, or xml_path for promote")
+    replay_p.add_argument("--replay-dir", type=Path, default=None, help="Directory for replay fixtures (default: data/fixtures/replay)")
+    replay_p.add_argument("--source-id", default=None, help="Source ID for promote")
+    replay_p.add_argument("--name", default=None, help="Source name for promote")
+
     args = parser.parse_args()
     cfg = load_config()
 
@@ -437,6 +445,117 @@ def main():
             else:
                 print("No quality report found. Please run: newsletter-ai daily --dry-run")
         sys.exit(0)
+
+    elif args.command == "replay":
+        from .replay import list_replay_fixtures, validate_replay_pair, load_rss_replay_fixture
+        from .rss import parse_rss_xml
+
+        replay_dir = getattr(args, "replay_dir", None) or (Path(__file__).parent.parent.parent / "data" / "fixtures" / "replay")
+        replay_dir = Path(replay_dir)
+
+        if args.subcmd == "list":
+            fixtures = list_replay_fixtures(replay_dir)
+            if not fixtures:
+                print(f"No replay fixtures found in {replay_dir}")
+                print("Run: newsletter-ai sources fetch --allow-network --capture-replay")
+                sys.exit(0)
+            print(f"{'Source ID':<20} {'Items':>6} {'Status':<10} {'Fetched At':<25} {'XML Path'}")
+            print("-" * 90)
+            for f in fixtures:
+                print(f"{f['source_id']:<20} {f['item_count'] or 0:>6} {f['status']:<10} {f['fetched_at'] or '':<25} {f['xml_path']}")
+                if f.get("errors"):
+                    for err in f["errors"]:
+                        print(f"  ERROR: {err}")
+                if f.get("warnings"):
+                    for warn in f["warnings"]:
+                        print(f"  WARN:  {warn}")
+            sys.exit(0)
+
+        elif args.subcmd == "inspect":
+            xml_path = getattr(args, "path", None)
+            if not xml_path:
+                print("Error: inspect requires a path to replay XML")
+                print("Usage: newsletter-ai replay inspect data/fixtures/replay/rss_xxx.xml")
+                sys.exit(1)
+            xml_path = Path(xml_path)
+            meta_path = xml_path.with_suffix(".json")
+            if not xml_path.exists():
+                print(f"Error: XML not found: {xml_path}")
+                sys.exit(1)
+            if not meta_path.exists():
+                print(f"Error: Metadata not found: {meta_path}")
+                sys.exit(1)
+
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            xml_text = load_rss_replay_fixture(xml_path)
+            items = parse_rss_xml(xml_text)
+
+            print(f"Replay: {xml_path.name}")
+            print(f"  source_id: {meta.get('source_id', 'unknown')}")
+            print(f"  url: {meta.get('url', 'N/A')}")
+            print(f"  fetched_at: {meta.get('fetched_at', 'N/A')}")
+            print(f"  status_code: {meta.get('status_code', 'N/A')}")
+            print(f"  item_count: {meta.get('item_count', len(items))}")
+            print(f"  sha256: {meta.get('sha256', 'N/A')}")
+            print(f"  sanitized: {meta.get('sanitized', False)}")
+            print(f"  stripped_tracking_params: {meta.get('stripped_tracking_params_count', 0)}")
+            print(f"\nFirst {min(3, len(items))} items:")
+            for i, item in enumerate(items[:3], 1):
+                print(f"  {i}. {item.get('title', '(untitled)')}")
+            sys.exit(0)
+
+        elif args.subcmd == "validate":
+            fixtures = list_replay_fixtures(replay_dir)
+            if not fixtures:
+                print(f"No replay fixtures found in {replay_dir}")
+                sys.exit(0)
+            pass_count = 0
+            fail_count = 0
+            for f in fixtures:
+                xml_path = Path(f["xml_path"])
+                meta_path = Path(f["metadata_path"]) if f["metadata_path"] else xml_path.with_suffix(".json")
+                result = validate_replay_pair(xml_path, meta_path)
+                status = "PASS" if result["valid"] else "FAIL"
+                if result["valid"]:
+                    pass_count += 1
+                else:
+                    fail_count += 1
+                print(f"[{status}] {f['source_id']}")
+                for err in result["errors"]:
+                    print(f"  ERROR: {err}")
+                for warn in result["warnings"]:
+                    print(f"  WARN:  {warn}")
+            print(f"\nSummary: {pass_count} passed, {fail_count} failed, {len(fixtures)} total")
+            sys.exit(0 if fail_count == 0 else 1)
+
+        elif args.subcmd == "promote":
+            xml_path = getattr(args, "path", None)
+            source_id = getattr(args, "source_id", None)
+            name = getattr(args, "name", None)
+            if not xml_path or not source_id or not name:
+                print("Error: promote requires xml_path, --source-id, and --name")
+                print("Usage: newsletter-ai replay promote data/fixtures/replay/rss_xxx.xml --source-id my-source --name 'My Source'")
+                sys.exit(1)
+            xml_path = Path(xml_path)
+            meta_path = xml_path.with_suffix(".json")
+            if not xml_path.exists():
+                print(f"Error: XML not found: {xml_path}")
+                sys.exit(1)
+
+            entry = {
+                "source_id": source_id,
+                "name": name,
+                "type": "rss_replay",
+                "enabled": True,
+                "fixture_path": str(xml_path),
+                "topic_hints": [],
+                "style_hints": [],
+                "quality_weight": 1.0,
+            }
+            print("Proposed registry entry (dry-run, not written):")
+            print(json.dumps(entry, indent=2, ensure_ascii=False))
+            print("\nTo add to registry, append this to data/fixtures/source_registry.json")
+            sys.exit(0)
 
     else:
         parser.print_help()
