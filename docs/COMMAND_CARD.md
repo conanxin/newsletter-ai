@@ -77,12 +77,25 @@
 - newsletter-ai health
 - newsletter-ai status
 
-## Quality
+## Quality (v0.3.18)
 - newsletter-ai quality show
+- newsletter-ai quality json
 - newsletter-ai quality explain
 - newsletter-ai quality sources
 - newsletter-ai quality duplicates
 - newsletter-ai quality sections
+
+### Quality report lifecycle (v0.3.18)
+1. `daily --dry-run` → generates `output/quality/latest_quality.json` (current run)
+2. `quality sections/sources/duplicates` → reads latest quality report
+3. If no report exists: `Run: newsletter-ai daily --dry-run`
+4. Legacy demo auto-generation removed — always current-run data
+
+### Replay quality chain (v0.3.18)
+- `daily --dry-run --source-registry data/fixtures/replay_source_registry.json`
+- `quality sections` → shows replay section distribution
+- `quality sources` → shows replay source quality
+- `quality duplicates` → shows replay duplicate analysis
 
 ## Replay (v0.3.15 governance, v0.3.16 smoke fixture, v0.3.17 regression)
 - newsletter-ai replay list

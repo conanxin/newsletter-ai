@@ -368,88 +368,79 @@ def main():
         latest_md = quality_dir / "latest_quality.md"
         latest_json = quality_dir / "latest_quality.json"
 
-        # Only auto-generate demo for show/json/explain to preserve graceful error for sources/duplicates/sections
+        # v0.3.18: remove legacy demo auto-generation. Only generate demo for show/json/explain
+        # when explicitly requested via --demo flag (not implemented yet).
+        # For now, all quality subcommands require an existing latest_quality.json.
         if args.subcmd in ("show", "json", "explain"):
             if not latest_json.exists():
-                demo_sources = [
-                    {"source": "fixture", "status": "ok", "raw_item_count": 5, "normalized_item_count": 4, "final_item_count": 3, "warnings": []}
-                ]
-                demo_items = [{"id": "1", "topic": "ai", "source": "fixture", "base_score": 0.8}]
-                report = generate_quality_report(str(uuid.uuid4())[:8], demo_sources, demo_items, duplicate_count=1, malformed_count=0, empty_count=0)
-                save_quality_report(report, output_dir)
+                print("No quality report found. Run: newsletter-ai daily --dry-run")
+                sys.exit(1)
 
         if args.subcmd == "show":
-            if latest_md.exists():
-                print(latest_md.read_text(encoding="utf-8"))
-            else:
-                print("No quality report found. Run daily first.")
+            print(latest_md.read_text(encoding="utf-8"))
         elif args.subcmd == "json":
-            if latest_json.exists():
-                print(latest_json.read_text(encoding="utf-8"))
-            else:
-                print("No quality report found. Run daily first.")
+            print(latest_json.read_text(encoding="utf-8"))
         elif args.subcmd == "explain":
-            if latest_json.exists():
-                data = json.loads(latest_json.read_text())
-                print(f"Quality Report Explain:")
-                print(f"  sources_checked: {data.get('sources_checked')}")
-                print(f"  items_raw: {data.get('items_raw')}")
-                print(f"  items_after_dedupe: {data.get('items_after_dedupe')}")
-                print(f"  duplicate_count: {data.get('duplicate_count')}")
-                print(f"  malformed_feed_count: {data.get('malformed_feed_count')}")
-                print(f"  empty_feed_count: {data.get('empty_feed_count')}")
-                print(f"  warnings: {data.get('warnings', [])}")
-                print("  Why this order: Top items selected by base_score + topic/style preference from feedback.")
-            else:
-                print("No quality report found. Run daily first.")
+            data = json.loads(latest_json.read_text())
+            print(f"Quality Report Explain:")
+            print(f"  run_id: {data.get('run_id')}")
+            print(f"  created_at: {data.get('created_at')}")
+            print(f"  sources_checked: {data.get('sources_checked')}")
+            print(f"  items_raw: {data.get('items_raw')}")
+            print(f"  items_after_dedupe: {data.get('items_after_dedupe')}")
+            print(f"  duplicate_count: {data.get('duplicate_count')}")
+            print(f"  malformed_feed_count: {data.get('malformed_feed_count')}")
+            print(f"  empty_feed_count: {data.get('empty_feed_count')}")
+            print(f"  warnings: {data.get('warnings', [])}")
+            print("  Why this order: Top items selected by base_score + topic/style preference from feedback.")
         elif args.subcmd == "sources":
-            if latest_json.exists():
-                data = json.loads(latest_json.read_text())
-                sources = data.get("source_details", [])
-                sorted_sources = sorted(sources, key=lambda x: x.get("source_quality_score", 0), reverse=True)
-                print("Source Quality Scores (sorted by score desc):")
-                print(f"{'Source':<20} {'Score':>8} {'Status':<10} {'Final':>6} {'DupRm':>6} {'Action':<18}")
-                print("-" * 75)
-                for s in sorted_sources:
-                    print(f"{s.get('source',''):<20} {s.get('source_quality_score',0):>8.3f} {s.get('status',''):<10} {s.get('final_item_count',0):>6} {s.get('duplicate_removed_count',0):>6} {s.get('recommended_action',''):<18}")
-            else:
-                print("No quality report found. Run daily first.")
+            if not latest_json.exists():
+                print("No quality report found. Run: newsletter-ai daily --dry-run")
+                sys.exit(1)
+            data = json.loads(latest_json.read_text())
+            sources = data.get("source_details", [])
+            sorted_sources = sorted(sources, key=lambda x: x.get("source_quality_score", 0), reverse=True)
+            print("Source Quality Scores (sorted by score desc):")
+            print(f"{'Source':<20} {'Score':>8} {'Status':<10} {'Final':>6} {'DupRm':>6} {'Action':<18}")
+            print("-" * 75)
+            for s in sorted_sources:
+                print(f"{s.get('source',''):<20} {s.get('source_quality_score',0):>8.3f} {s.get('status',''):<10} {s.get('final_item_count',0):>6} {s.get('duplicate_removed_count',0):>6} {s.get('recommended_action',''):<18}")
         elif args.subcmd == "duplicates":
-            if latest_json.exists():
-                data = json.loads(latest_json.read_text())
-                print("Duplicate Reason Counts:")
-                for reason, count in sorted(data.get("duplicate_reason_counts", {}).items(), key=lambda x: -x[1]):
-                    print(f"  {reason}: {count}")
-                print(f"Fuzzy duplicate count: {data.get('fuzzy_duplicate_count', 0)}")
-            else:
-                print("No quality report found. Run daily first.")
+            if not latest_json.exists():
+                print("No quality report found. Run: newsletter-ai daily --dry-run")
+                sys.exit(1)
+            data = json.loads(latest_json.read_text())
+            print("Duplicate Reason Counts:")
+            for reason, count in sorted(data.get("duplicate_reason_counts", {}).items(), key=lambda x: -x[1]):
+                print(f"  {reason}: {count}")
+            print(f"Fuzzy duplicate count: {data.get('fuzzy_duplicate_count', 0)}")
         elif args.subcmd == "sections":
-            if latest_json.exists():
-                data = json.loads(latest_json.read_text())
-                sections = data.get("section_distribution", {})
-                if not sections:
-                    print("No section distribution found in quality report.")
-                    sys.exit(0)
+            if not latest_json.exists():
+                print("No quality report found. Run: newsletter-ai daily --dry-run")
+                sys.exit(1)
+            data = json.loads(latest_json.read_text())
+            sections = data.get("section_distribution", {})
+            if not sections:
+                print("No section distribution found in quality report.")
+                sys.exit(0)
 
-                print("Section Quality Report (v0.3.4)")
-                print("=" * 60)
-                for sid, sec in sections.items():
-                    print(f"\n[{sec.get('section_label', sid)}] ({sid})")
-                    print(f"  Items: {sec.get('item_count', 0)}")
-                    print(f"  Avg Score: {sec.get('average_score', 0.0):.3f}")
-                    print(f"  Avg Quality Score: {sec.get('average_quality_score', 0.0):.3f}")
-                    print(f"  Sources ({sec.get('source_count', 0)}): {', '.join(sec.get('sources', [])[:5])}")
-                    print(f"  Topic Tags: {', '.join(sec.get('topic_tags', [])[:5])}")
-                    if sec.get('warnings'):
-                        print(f"  Warnings: {', '.join(sec['warnings'])}")
-                    titles = sec.get('representative_titles', [])
-                    if titles:
-                        print(f"  Representative Titles:")
-                        for t in titles:
-                            print(f"    - {t}")
-                print("\n" + "=" * 60)
-            else:
-                print("No quality report found. Please run: newsletter-ai daily --dry-run")
+            print("Section Quality Report (v0.3.4)")
+            print("=" * 60)
+            for sid, sec in sections.items():
+                print(f"\n[{sec.get('section_label', sid)}] ({sid})")
+                print(f"  Items: {sec.get('item_count', 0)}")
+                print(f"  Avg Score: {sec.get('average_score', 0.0):.3f}")
+                print(f"  Avg Quality Score: {sec.get('average_quality_score', 0.0):.3f}")
+                print(f"  Sources ({sec.get('source_count', 0)}): {', '.join(sec.get('sources', [])[:5])}")
+                print(f"  Topic Tags: {', '.join(sec.get('topic_tags', [])[:5])}")
+                if sec.get('warnings'):
+                    print(f"  Warnings: {', '.join(sec['warnings'])}")
+                titles = sec.get('representative_titles', [])
+                if titles:
+                    print(f"  Representative Titles:")
+                    for t in titles:
+                        print(f"    - {t}")
+            print("\n" + "=" * 60)
         sys.exit(0)
 
     elif args.command == "replay":

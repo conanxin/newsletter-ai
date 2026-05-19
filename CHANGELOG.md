@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.3.18 (2026-05)
+- Current-run Quality Report Consistency
+- `daily --dry-run` now generates `output/quality/latest_quality.json` after each run
+- Quality report is based on the current run's ranked items, not legacy demo data
+- `last-run-status.json` records `quality_report_path`
+- Quality CLI commands (`sections`, `sources`, `duplicates`) now require an existing latest quality report
+  - If no report exists, prompt: `Run: newsletter-ai daily --dry-run`
+  - Removed legacy demo auto-generation fallback
+- Replay registry daily (`--source-registry data/fixtures/replay_source_registry.json`) also generates current quality report
+- `quality explain` now shows `run_id` and `created_at` for traceability
+- Verified offline command chain:
+  - `daily --dry-run` → generates latest_quality.json
+  - `quality sections` → reads current report
+  - `quality sources` → reads current report
+  - `quality duplicates` → reads current report
+  - `quality explain` → shows run_id / created_at
+  - `daily --dry-run --source-registry data/fixtures/replay_source_registry.json` → replay quality report
+  - `quality sections` → reflects replay items
+- Default source_registry and daily behavior unchanged
+
 ## v0.3.17 (2026-05)
 - Real Replay Fixture Regression + Registry Integration
 - New offline replay registry:

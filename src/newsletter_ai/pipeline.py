@@ -146,6 +146,7 @@ def run_daily_pipeline(
                     from .snapshot import create_item_snapshot
                     from .sections import group_items_into_sections
                     from .render import render_markdown_digest, render_telegram_digest
+                    from .quality import generate_quality_report, save_quality_report
 
                     ranked_items = cfg.get("_ranked_items", [])
                     if not ranked_items:
@@ -163,6 +164,40 @@ def run_daily_pipeline(
                     sections = group_items_into_sections(ranked_items)
                     md_digest = render_markdown_digest(sections)
                     tg_digest = render_telegram_digest(sections)
+
+                    # v0.3.18: generate current-run quality report
+                    try:
+                        # Build source info from ingestion report or fallback
+                        source_infos = []
+                        if ingestion_report is not None:
+                            for s in ingestion_report.get("sources", []):
+                                source_infos.append({
+                                    "source": s.get("source_id", "unknown"),
+                                    "feed_path": s.get("fixture_path", s.get("url", "")),
+                                    "status": s.get("status", "ok"),
+                                    "raw_item_count": s.get("item_count_raw", 0),
+                                    "normalized_item_count": s.get("item_count_normalized", 0),
+                                    "final_item_count": s.get("item_count_normalized", 0),
+                                    "warnings": s.get("warnings", []),
+                                })
+                        else:
+                            # Fallback for default fixture mode
+                            source_infos = [
+                                {"source": "fixture", "status": "ok", "raw_item_count": len(ranked_items), "normalized_item_count": len(ranked_items), "final_item_count": len(ranked_items), "warnings": []}
+                            ]
+
+                        quality_report = generate_quality_report(
+                            run_id=started,
+                            sources=source_infos,
+                            items_after_dedupe=ranked_items,
+                            duplicate_count=0,
+                            malformed_count=0,
+                            empty_count=0,
+                        )
+                        quality_paths = save_quality_report(quality_report, cfg["OUTPUT_DIR"])
+                        step_result["quality_report_path"] = str(quality_paths["json"])
+                    except Exception as qexc:
+                        step_result["quality_report_error"] = str(qexc)
 
                     step_result["status"] = "success"
                     step_result["finished_at"] = _now_iso()
@@ -250,6 +285,11 @@ def run_daily_pipeline(
                 if s.get("status") == "failed"
             ],
         }
+
+    # v0.3.18: record quality report path if generated
+    digest_step = [s for s in steps if s.get("name") == "digest"]
+    if digest_step and digest_step[0].get("quality_report_path"):
+        final_status["quality_report_path"] = digest_step[0]["quality_report_path"]
 
     _write_last_run_status(final_status, cfg)
     return final_status
