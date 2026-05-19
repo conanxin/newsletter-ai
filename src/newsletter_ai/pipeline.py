@@ -26,6 +26,7 @@ def run_daily_pipeline(
     dry_run: bool = False,
     no_publish: bool = False,
     source_registry: Optional[Path] = None,
+    allow_network: bool = False,
 ) -> Dict[str, Any]:
     """Main daily pipeline with structured step logging and dry-run snapshot support.
 
@@ -33,6 +34,8 @@ def run_daily_pipeline(
         source_registry: Optional path to a source registry JSON file.
                          When provided and dry_run is True, pipeline reads
                          enabled rss_fixture sources instead of default dry_run_items.json.
+        allow_network: If True, allows rss_url sources to perform real network requests.
+                       Only effective when source_registry is provided.
     """
     if cfg is None:
         cfg = load_config()
@@ -70,16 +73,16 @@ def run_daily_pipeline(
                 if step_name == "rank":
                     from .ranking import rank_items
                     from .fixtures import load_dry_run_items, normalize_fixture_item
-                    from .sources import load_source_registry, validate_source_registry, enabled_sources, ingest_offline_sources_with_report
+                    from .sources import load_source_registry, validate_source_registry, enabled_sources, ingest_sources_with_report
 
                     if source_registry is not None and source_registry.exists():
-                        # v0.3.10: controlled offline source registry mode
+                        # v0.3.12: controlled source registry mode with optional network
                         registry_sources = load_source_registry(source_registry)
                         validation = validate_source_registry(registry_sources)
                         if not validation["valid"]:
                             raise ValueError(f"Source registry invalid: {validation['errors']}")
 
-                        result = ingest_offline_sources_with_report(registry_sources)
+                        result = ingest_sources_with_report(registry_sources, allow_network=allow_network)
                         raw_items = result["items"]
                         ingestion_report = result["report"]
                         input_mode = "source_registry"
@@ -131,6 +134,7 @@ def run_daily_pipeline(
                             "source_count_success": ingestion_report["source_count_success"],
                             "source_count_failed": ingestion_report["source_count_failed"],
                             "source_count_empty": ingestion_report["source_count_empty"],
+                            "source_count_skipped_network": ingestion_report.get("source_count_skipped_network", 0),
                             "total_items": ingestion_report["total_items"],
                             "failed_source_ids": [
                                 s["source_id"] for s in ingestion_report["sources"]

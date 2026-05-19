@@ -1,4 +1,4 @@
-# Command Card v0.3.11
+# Command Card v0.3.12
 
 ## Release Gate
 - make release-check
@@ -8,21 +8,33 @@
 - newsletter-ai daily --dry-run
 - Uses data/fixtures/dry_run_items.json by default (normalized)
 
-## Daily with Source Registry (v0.3.10)
+## Daily with Source Registry (v0.3.10, v0.3.12)
 - newsletter-ai daily --dry-run --source-registry data/fixtures/source_registry.json
-- Reads enabled rss_fixture sources from registry
+- Reads enabled rss_fixture sources from registry (offline by default)
+- rss_url sources are skipped unless --allow-network is provided
 - Requires --dry-run or --no-publish
 - Records input_mode / source_count / item_count / ingestion_report in last-run-status
 
-## Source Registry (v0.3.9, v0.3.11)
+## Daily with Network (v0.3.12 — explicit opt-in only)
+- newsletter-ai daily --dry-run --source-registry data/fixtures/source_registry.json --allow-network
+- Allows rss_url sources to perform real HTTP requests
+- --allow-network requires --dry-run or --no-publish for safety
+- Default is always offline — no implicit network access
+
+## Source Registry (v0.3.9, v0.3.11, v0.3.12)
 - newsletter-ai sources list
 - newsletter-ai sources validate
 - newsletter-ai sources ingest-fixtures
 - newsletter-ai sources report
+- newsletter-ai sources fetch --registry data/fixtures/source_registry.json
+- newsletter-ai sources fetch --registry data/fixtures/source_registry.json --allow-network
 - Registry: data/fixtures/source_registry.json
-- Supports rss_fixture type (offline only)
-- Per-source status: success / failed / disabled / empty
+- Supports two source types:
+  - rss_fixture: offline local XML file (default, safe)
+  - rss_url: real RSS feed URL (requires --allow-network)
+- Per-source status: success / failed / disabled / empty / skipped
 - Single source failure does not crash entire ingestion
+- fetch command shows network lock icon (🔒/🌐) per source
 
 ## Inspection
 - newsletter-ai items show
@@ -42,6 +54,13 @@
 - newsletter-ai quality sources
 - newsletter-ai quality duplicates
 - newsletter-ai quality sections
+
+## v0.3.12 Controlled Real RSS Fetch
+- src/newsletter_ai/fetch.py: fetch_url() / fetch_rss_url_source()
+- Standard library only (urllib.request), no heavy dependencies
+- Explicit allow_network=False default — no requests without opt-in
+- Structured FetchResult with ok, status_code, text, error, duration_sec
+- User-Agent: newsletter-ai/dev
 
 ## v0.3.8 RSS Fixture Parser
 - src/newsletter_ai/rss.py: parse_rss_xml() / parse_rss_file()

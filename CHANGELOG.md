@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.3.12 (2026-05)
+- Controlled Real RSS Fetch Prototype
+- Added `src/newsletter_ai/fetch.py`: `fetch_url()` and `fetch_rss_url_source()`
+  - Uses standard library `urllib.request` only (no new heavy dependencies)
+  - Explicit `allow_network=False` by default — no network requests without opt-in
+  - Structured `FetchResult` with `ok`, `status_code`, `text`, `error`, `duration_sec`, `from_cache`
+  - Supports timeout and custom User-Agent (`newsletter-ai/dev`)
+- Extended source registry schema to support `rss_url` source type:
+  - Required fields: `source_id`, `name`, `type`, `enabled`, `url`
+  - Optional: `timeout_sec` (default 10), `cache_ttl_minutes`, `topic_hints`, `style_hints`
+  - `rss_fixture` type remains fully backward-compatible
+- Added `ingest_sources_with_report()` in `src/newsletter_ai/sources.py`:
+  - Unified ingestion for both `rss_fixture` (offline) and `rss_url` (network, opt-in)
+  - `allow_network=False` → rss_url sources marked `skipped` with `network_disabled` warning
+  - `allow_network=True` → fetches URL, parses RSS XML, normalizes items
+  - Per-source report now includes: `url`, `fetch_status`, `http_status_code`, `from_cache`, `network_allowed`
+  - Single source failure does not affect other sources
+  - All-fallback/skipped registry → graceful empty result (no crash)
+- CLI enhancements:
+  - `newsletter-ai sources fetch --registry <path> [--allow-network]`
+  - `newsletter-ai daily --dry-run --source-registry <path> [--allow-network]`
+  - `--allow-network` requires `--dry-run` or `--no-publish` for safety
+  - Without `--allow-network`, clear prompt: "rss_url sources will be skipped"
+  - `newsletter-ai sources ingest-fixtures` behavior unchanged (offline only)
+- Pipeline guard:
+  - `run_daily_pipeline()` accepts `allow_network` parameter
+  - Default `allow_network=False` — daily dry-run never implicitly fetches real URLs
+  - Publish step never triggers network fetch
+- Tests (all mock network, no real HTTP requests):
+  - `tests/test_fetch.py`: 11 tests covering success, HTTP error, URL error, timeout, User-Agent
+  - `tests/test_sources_rss_url.py`: 9 tests covering validate, skipped, mocked success, failure, mixed sources, backward compat
+- Documentation:
+  - Updated `docs/COMMAND_CARD.md` with v0.3.12 commands
+  - Updated `CHANGELOG.md`
+
 ## v0.3.11 (2026-05)
 - Source Ingestion Report + Failure Resilience
 - Added `ingest_offline_sources_with_report()` returning items + per-source report

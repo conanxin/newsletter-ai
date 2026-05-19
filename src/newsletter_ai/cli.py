@@ -1,4 +1,4 @@
-"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline + v0.3.11 source ingestion report."""
+"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline + v0.3.11 source ingestion report + v0.3.12 controlled real RSS fetch."""
 
 import argparse
 import json
@@ -13,11 +13,11 @@ from .feedback import apply_feedback, load_preferences, resolve_item_from_snapsh
 def main():
     parser = argparse.ArgumentParser(
         prog="newsletter-ai",
-        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline + v0.3.11 source ingestion report"
+        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline + v0.3.11 source ingestion report + v0.3.12 controlled real RSS fetch"
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    # daily (v0.3.10: added --source-registry)
+    # daily (v0.3.10: added --source-registry; v0.3.12: added --allow-network)
     daily_p = subparsers.add_parser("daily", help="Run daily pipeline")
     daily_p.add_argument("--dry-run", action="store_true")
     daily_p.add_argument("--no-publish", action="store_true")
@@ -25,7 +25,12 @@ def main():
         "--source-registry",
         type=Path,
         default=None,
-        help="Path to offline source registry JSON (only with --dry-run or --no-publish). Uses local RSS fixtures, no network requests."
+        help="Path to source registry JSON (only with --dry-run or --no-publish)."
+    )
+    daily_p.add_argument(
+        "--allow-network",
+        action="store_true",
+        help="Allow real network requests for rss_url sources (requires --dry-run or --no-publish)."
     )
 
     # feedback
@@ -50,9 +55,11 @@ def main():
     quality_p = subparsers.add_parser("quality", help="Quality report commands")
     quality_p.add_argument("subcmd", choices=["show", "json", "explain", "sources", "duplicates", "sections"])
 
-    # sources (v0.3.9, v0.3.11: added "report")
+    # sources (v0.3.9, v0.3.11: added "report"; v0.3.12: added "fetch")
     sources_p = subparsers.add_parser("sources", help="Source registry commands")
-    sources_p.add_argument("subcmd", choices=["list", "validate", "ingest-fixtures", "report"])
+    sources_p.add_argument("subcmd", choices=["list", "validate", "ingest-fixtures", "report", "fetch"])
+    sources_p.add_argument("--registry", type=Path, default=None, help="Path to source registry JSON")
+    sources_p.add_argument("--allow-network", action="store_true", help="Allow real network requests for rss_url sources")
 
     args = parser.parse_args()
     cfg = load_config()
@@ -64,6 +71,12 @@ def main():
             print("Error: --source-registry requires --dry-run or --no-publish")
             sys.exit(1)
 
+        # v0.3.12: --allow-network only allowed with --dry-run or --no-publish
+        allow_network = getattr(args, "allow_network", False)
+        if allow_network and not (args.dry_run or args.no_publish):
+            print("Error: --allow-network requires --dry-run or --no-publish")
+            sys.exit(1)
+
         if source_registry is not None and not source_registry.exists():
             print(f"Error: Source registry not found: {source_registry}")
             sys.exit(1)
@@ -73,6 +86,7 @@ def main():
             dry_run=args.dry_run,
             no_publish=args.no_publish,
             source_registry=source_registry,
+            allow_network=allow_network,
         )
         print(status)
         sys.exit(0 if status.get("status") == "success" else 1)
@@ -115,12 +129,14 @@ def main():
         sys.exit(0)
 
     elif args.command == "sources":
-        from .sources import load_source_registry, validate_source_registry, ingest_offline_sources_with_report, enabled_sources
-        registry_path = Path(__file__).parent.parent.parent / "data" / "fixtures" / "source_registry.json"
+        from .sources import load_source_registry, validate_source_registry, ingest_sources_with_report, enabled_sources
+        registry_path = getattr(args, "registry", None) or (Path(__file__).parent.parent.parent / "data" / "fixtures" / "source_registry.json")
         if not registry_path.exists():
             print(f"No source registry found at {registry_path}")
             print("Run daily --dry-run or create data/fixtures/source_registry.json")
             sys.exit(1)
+
+        allow_network = getattr(args, "allow_network", False)
 
         if args.subcmd == "list":
             sources = load_source_registry(registry_path)
@@ -136,10 +152,13 @@ def main():
                 print("Source registry is valid.")
                 for s in sources:
                     fixture = s.get("fixture_path", "")
+                    url = s.get("url", "")
                     if fixture:
                         exists = (Path(__file__).parent.parent.parent / fixture).exists()
                         status = "OK" if exists else "MISSING"
                         print(f"  {s['source_id']}: fixture {status}")
+                    if url:
+                        print(f"  {s['source_id']}: url {url}")
             else:
                 print("Source registry has errors:")
                 for e in result["errors"]:
@@ -148,7 +167,7 @@ def main():
 
         elif args.subcmd == "ingest-fixtures":
             sources = load_source_registry(registry_path)
-            result = ingest_offline_sources_with_report(sources)
+            result = ingest_sources_with_report(sources, allow_network=False)
             items = result["items"]
             report = result["report"]
             print(f"Ingested {len(items)} items from {report['source_count_enabled']} enabled sources.")
@@ -164,6 +183,37 @@ def main():
                     for warn in s["warnings"]:
                         print(f"      WARN:  {warn}")
             # Save report for later retrieval
+            report_dir = cfg["OUTPUT_DIR"] / "reports"
+            report_dir.mkdir(parents=True, exist_ok=True)
+            report_file = report_dir / "latest_source_ingestion_report.json"
+            report_file.write_text(json.dumps(report, indent=2, ensure_ascii=False), encoding="utf-8")
+
+        elif args.subcmd == "fetch":
+            sources = load_source_registry(registry_path)
+            if not allow_network:
+                print("Note: --allow-network not set. rss_url sources will be skipped (network_disabled).")
+                print("Use --allow-network to perform real network requests.\n")
+            result = ingest_sources_with_report(sources, allow_network=allow_network)
+            items = result["items"]
+            report = result["report"]
+            print(f"Fetched {len(items)} items from {report['source_count_enabled']} enabled sources.")
+            print(f"Total: {report['source_count_total']} | Enabled: {report['source_count_enabled']} | Disabled: {report['source_count_disabled']} | Success: {report['source_count_success']} | Failed: {report['source_count_failed']} | Empty: {report['source_count_empty']} | SkippedNetwork: {report.get('source_count_skipped_network', 0)}")
+            print("\nPer-source status:")
+            for s in report["sources"]:
+                status_icon = "✓" if s["status"] == "success" else "✗" if s["status"] == "failed" else "○" if s["status"] == "skipped" else "-"
+                net_icon = "🌐" if s.get("network_allowed") else "🔒"
+                print(f"  {status_icon} {net_icon} {s['source_id']:<20} {s['status']:<10} raw={s['item_count_raw']:<3} norm={s['item_count_normalized']:<3}  {s['name']}")
+                if s.get("url"):
+                    print(f"      URL: {s['url']}")
+                if s.get("fetch_status"):
+                    print(f"      fetch_status: {s['fetch_status']} http_code={s.get('http_status_code')}")
+                if s.get("errors"):
+                    for err in s["errors"]:
+                        print(f"      ERROR: {err}")
+                if s.get("warnings"):
+                    for warn in s["warnings"]:
+                        print(f"      WARN:  {warn}")
+            # Save report
             report_dir = cfg["OUTPUT_DIR"] / "reports"
             report_dir.mkdir(parents=True, exist_ok=True)
             report_file = report_dir / "latest_source_ingestion_report.json"
