@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.5 (2026-05)
+- Fixture-based End-to-End Regression
+- New fixture: tests/fixtures/e2e_items.json (7 items covering AI/LLM, Business/Strategy, Media/Culture, near-duplicate, missing topic_tags fallback, multiple sources, style_tags)
+- New E2E test: tests/test_e2e_fixture_flow.py
+- Full chain coverage:
+  fixture → ranking → snapshot (global item_index) → sectioned digest (markdown + telegram) → quality report (section_distribution + warnings) → feedback resolution → preferences_history.jsonl
+- Test runs completely offline (no network, no Telegram send, no LLM)
+- Regresses quality sections / sources / duplicates
+- Regresses feedback "like 1" item_index parsing and dry-run behavior
+- All writes go to tmp_path during tests (no pollution of real data/state)
+- make release-check and make validate now cover the full fixture flow
+
 ## v0.3.4 (2026-05)
 - Section-aware Quality Polish
 - Enhanced section_distribution in quality report with rich metrics:
@@ -29,30 +41,3 @@
 - quality duplicates: shows duplicate_reason_counts + fuzzy_duplicate_count
 - graceful error when latest_quality.json is missing
 - added tests/test_cli_quality_sources.py
-
-## v0.2.5 (2026-05)
-- RSS fixtures + E2E regression (no network)
-- RSS parser, normalizer, dedupe
-- fixture dry-run mode (`--fixtures`)
-- full E2E: fetch/normalize/rank/snapshot/render/feedback
-- 28/28 tests + release gate
-
-## v0.2.4 / v0.2.4R / v0.2.4S
-- Digest rendering unification
-- Test gate + acceptance fixes
-- dry-run snapshot writing
-- CLI parser stability
-
-## v0.2.3
-- Snapshot + ranking integration
-- items show / explain commands
-
-## v0.2.2
-- Feedback preferences engine
-- Weight updates + history
-
-## v0.2.1
-- Safe publisher + legacy migration
-
-## v0.2
-- Hardening: config, pipeline, tests, docs

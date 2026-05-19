@@ -1,4 +1,4 @@
-# Command Card v0.3.4
+# Command Card v0.3.5
 
 ## Release Gate
 - make release-check
@@ -20,12 +20,21 @@
 - newsletter-ai health
 - newsletter-ai status
 
-## Quality (v0.3.4)
+## Quality (v0.3.5)
 - newsletter-ai quality show
 - newsletter-ai quality explain
 - newsletter-ai quality sources
 - newsletter-ai quality duplicates
-- newsletter-ai quality sections          # NEW: section-aware quality + warnings
+- newsletter-ai quality sections
+
+## v0.3.5 E2E Fixture Regression
+- Full offline regression test: tests/test_e2e_fixture_flow.py
+- Fixture: tests/fixtures/e2e_items.json (AI/LLM, Business, Media, duplicate, fallback "other" section)
+- Covers: ranking → snapshot (global item_index) → sectioned render (markdown + telegram) → quality report → feedback → preferences_history
+- All writes use tmp_path (no pollution of real data/state)
+- quality sections / sources / duplicates are regressed
+- feedback "like 1" item resolution is regressed
+- No network, no Telegram send, no LLM
 
 ## v0.3.4 Section Quality
 - newsletter-ai quality sections 显示每个 section 的：
