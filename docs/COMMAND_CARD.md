@@ -19,3 +19,8 @@
 ## Status
 - newsletter-ai health
 - newsletter-ai status
+## Quality (v0.3.2.1)
+- newsletter-ai quality show
+- newsletter-ai quality explain
+- newsletter-ai quality sources
+- newsletter-ai quality duplicates

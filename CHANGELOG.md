@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.2.1 (2026-05)
+- fix: quality sources and quality duplicates CLI registration
+- quality sources: shows source_quality_score table sorted by score
+- quality duplicates: shows duplicate_reason_counts + fuzzy_duplicate_count
+- graceful error when latest_quality.json is missing
+- added tests/test_cli_quality_sources.py
+
 ## v0.2.5 (2026-05)
 - RSS fixtures + E2E regression (no network)
 - RSS parser, normalizer, dedupe

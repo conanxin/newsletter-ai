@@ -42,7 +42,7 @@ def main():
 
     # quality (v0.3.1R verified registration)
     quality_p = subparsers.add_parser("quality", help="Quality report commands")
-    quality_p.add_argument("subcmd", choices=["show", "json", "explain"])
+    quality_p.add_argument("subcmd", choices=["show", "json", "explain", "sources", "duplicates"])
 
     args = parser.parse_args()
     cfg = load_config()
@@ -129,6 +129,27 @@ def main():
                 print(f"  empty_feed_count: {data.get('empty_feed_count')}")
                 print(f"  warnings: {data.get('warnings', [])}")
                 print("  Why this order: Top items selected by base_score + topic/style preference from feedback.")
+            else:
+                print("No quality report found. Run daily first.")
+        elif args.subcmd == "sources":
+            if latest_json.exists():
+                data = json.loads(latest_json.read_text())
+                sources = data.get("source_details", [])
+                sorted_sources = sorted(sources, key=lambda x: x.get("source_quality_score", 0), reverse=True)
+                print("Source Quality Scores (sorted by score desc):")
+                print(f"{'Source':<20} {'Score':>8} {'Status':<10} {'Final':>6} {'DupRm':>6} {'Action':<18}")
+                print("-" * 75)
+                for s in sorted_sources:
+                    print(f"{s.get('source',''):<20} {s.get('source_quality_score',0):>8.3f} {s.get('status',''):<10} {s.get('final_item_count',0):>6} {s.get('duplicate_removed_count',0):>6} {s.get('recommended_action',''):<18}")
+            else:
+                print("No quality report found. Run daily first.")
+        elif args.subcmd == "duplicates":
+            if latest_json.exists():
+                data = json.loads(latest_json.read_text())
+                print("Duplicate Reason Counts:")
+                for reason, count in sorted(data.get("duplicate_reason_counts", {}).items(), key=lambda x: -x[1]):
+                    print(f"  {reason}: {count}")
+                print(f"Fuzzy duplicate count: {data.get('fuzzy_duplicate_count', 0)}")
             else:
                 print("No quality report found. Run daily first.")
         sys.exit(0)

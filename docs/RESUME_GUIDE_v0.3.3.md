@@ -51,4 +51,6 @@ Digest Sectioning by Topic
 ---
 **v0.3.2 已关闭**：6b6d413 add newsletter-ai v0.3.2 source scoring and fuzzy dedupe
 **当前分支**：harden-v0.2-newsletter-ai
+
+**v0.3.2.1 完成**：quality sources / quality duplicates 已注册，quality CLI 四个入口全部可用。
 **准备状态**：v0.3.3 规划文档已生成，可开始第一阶段开发。
