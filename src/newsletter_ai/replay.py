@@ -30,15 +30,15 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def sanitize_replay_xml(xml_text: str) -> str:
+def sanitize_replay_xml(xml_text: str) -> tuple[str, int]:
     """Sanitize RSS XML before saving as replay fixture.
 
     Strips common tracking query parameters from URLs while preserving
     the rest of the XML structure.
 
-    Returns the sanitized XML text. If the XML is unparseable after
-    sanitization, returns the original text with a warning logged
-    in metadata (callers should check parseability separately).
+    Returns a tuple of (sanitized_xml_text, stripped_count).
+    If the XML is unparseable after sanitization, returns the original
+    text with stripped_count=0.
     """
     # Regex to find URLs inside XML text content
     # Matches http(s)://... up to whitespace or XML tag boundary
@@ -71,7 +71,7 @@ def sanitize_replay_xml(xml_text: str) -> str:
         return base + "?" + "&amp;".join(kept)
 
     sanitized = url_pattern.sub(_strip_tracking_params, xml_text)
-    return sanitized
+    return sanitized, stripped_count
 
 
 def build_replay_metadata(
@@ -124,7 +124,7 @@ def save_rss_replay_fixture(
     xml_path = output_dir / f"{base_name}.xml"
     meta_path = output_dir / f"{base_name}.json"
 
-    xml_path.write_text(sanitize_replay_xml(xml_text), encoding="utf-8")
+    xml_path.write_text(sanitize_replay_xml(xml_text)[0], encoding="utf-8")
     meta_path.write_text(json.dumps(metadata or {}, indent=2, ensure_ascii=False), encoding="utf-8")
 
     return xml_path

@@ -26,28 +26,29 @@ RSS_WITH_TRACKING = """<?xml version="1.0"?>
 
 
 def test_sanitize_strips_utm_params():
-    result = sanitize_replay_xml(RSS_WITH_TRACKING)
+    result, count = sanitize_replay_xml(RSS_WITH_TRACKING)
     assert "utm_source" not in result
     assert "utm_medium" not in result
     assert "ref=keep" in result
+    assert count >= 2
 
 
 def test_sanitize_strips_fbclid_and_gclid():
-    result = sanitize_replay_xml(RSS_WITH_TRACKING)
+    result, count = sanitize_replay_xml(RSS_WITH_TRACKING)
     assert "fbclid" not in result
     assert "gclid" not in result
     assert "page=2" in result
 
 
 def test_sanitize_preserves_non_tracking_params():
-    result = sanitize_replay_xml(RSS_WITH_TRACKING)
+    result, count = sanitize_replay_xml(RSS_WITH_TRACKING)
     assert "ref=keep" in result
     assert "page=2" in result
     assert "page=3" in result
 
 
 def test_sanitize_keeps_xml_structure():
-    result = sanitize_replay_xml(RSS_WITH_TRACKING)
+    result, count = sanitize_replay_xml(RSS_WITH_TRACKING)
     assert "<title>Tracked Feed</title>" in result
     assert "<title>Item A</title>" in result
     assert "<title>Item B</title>" in result
@@ -55,7 +56,7 @@ def test_sanitize_keeps_xml_structure():
 
 
 def test_sanitize_result_is_parseable():
-    result = sanitize_replay_xml(RSS_WITH_TRACKING)
+    result, count = sanitize_replay_xml(RSS_WITH_TRACKING)
     items = parse_rss_xml(result)
     assert len(items) == 3
     assert items[0]["title"] == "Item A"
@@ -69,8 +70,9 @@ def test_sanitize_no_op_on_clean_xml():
 <item><title>X</title><link>https://example.com/x?ref=1</link></item>
 </channel></rss>
 """
-    result = sanitize_replay_xml(clean)
+    result, count = sanitize_replay_xml(clean)
     assert result == clean
+    assert count == 0
 
 
 def test_sanitize_strips_mc_params():
@@ -79,7 +81,8 @@ def test_sanitize_strips_mc_params():
 <item><title>X</title><link>https://example.com/x?mc_cid=123&amp;mc_eid=456&amp;keep=1</link></item>
 </channel></rss>
 """
-    result = sanitize_replay_xml(xml)
+    result, count = sanitize_replay_xml(xml)
     assert "mc_cid" not in result
     assert "mc_eid" not in result
     assert "keep=1" in result
+    assert count == 2

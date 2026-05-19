@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.3.16 (2026-05)
+- Real RSS Source Smoke Run + First Replay Fixture
+- Performed controlled real network fetch from https://hnrss.org/frontpage
+- Captured replay fixture:
+  - XML: `data/fixtures/replay/rss_hnrss-frontpage-smoke_20260519_111736.xml` (~16KB)
+  - Metadata: `data/fixtures/replay/rss_hnrss-frontpage-smoke_20260519_111736.json`
+  - 20 items, HTTP 200, sha256 validated
+  - Public HN frontpage RSS snapshot — no token/cookie/auth
+  - Used for offline replay / regression, not real-time HN
+- `sanitize_replay_xml()` now returns `(sanitized_xml, stripped_count)` tuple
+  - Integrated into CLI capture flow with accurate stripped count
+- CLI smoke command chain verified:
+  - `sources fetch --allow-network --capture-replay`
+  - `replay validate` → PASS
+  - `replay inspect` → metadata + first 3 titles
+  - `replay promote` → dry-run rss_replay registry entry
+  - `daily --dry-run --source-registry <replay_registry>` → 20 items offline
+- Tests updated to unpack tuple from `sanitize_replay_xml()`
+- No tests assert specific HN titles (time-sensitive content)
+
 ## v0.3.15 (2026-05)
 - Replay Governance + Sanitization
 - `sanitize_replay_xml()` now strips common tracking query parameters from URLs:

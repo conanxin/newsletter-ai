@@ -34,8 +34,9 @@ SAMPLE_RSS = """<?xml version="1.0" encoding="UTF-8"?>
 
 class TestSanitizeReplayXml:
     def test_no_op_on_clean_xml(self):
-        result = sanitize_replay_xml(SAMPLE_RSS)
+        result, count = sanitize_replay_xml(SAMPLE_RSS)
         assert result == SAMPLE_RSS
+        assert count == 0
 
 
 class TestBuildReplayMetadata:

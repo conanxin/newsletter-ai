@@ -1,0 +1,104 @@
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Hacker News: Front Page</title><link>https://news.ycombinator.com/</link><description>Hacker News RSS</description><docs>https://hnrss.org/</docs><generator>hnrss v2.1.1</generator><lastBuildDate>Tue, 19 May 2026 11:13:49 +0000</lastBuildDate><atom:link href="https://hnrss.org/frontpage" rel="self" type="application/rss+xml"></atom:link><item><title><![CDATA[Gaussian Splat of a Strawberry]]></title><description><![CDATA[
+<p>Article URL: <a href="https://superspl.at/scene/84df8849">https://superspl.at/scene/84df8849</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48191602">https://news.ycombinator.com/item?id=48191602</a></p>
+<p>Points: 20</p>
+<p># Comments: 10</p>
+]]></description><pubDate>Tue, 19 May 2026 10:38:47 +0000</pubDate><link>https://superspl.at/scene/84df8849</link><dc:creator>danybittel</dc:creator><comments>https://news.ycombinator.com/item?id=48191602</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48191602</guid></item><item><title><![CDATA[Mini Shai-Hulud Strikes Again: 314 npm Packages Compromised]]></title><description><![CDATA[
+<p>Article URL: <a href="https://safedep.io/mini-shai-hulud-strikes-again-314-npm-packages-compromised/">https://safedep.io/mini-shai-hulud-strikes-again-314-npm-packages-compromised/</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48189368">https://news.ycombinator.com/item?id=48189368</a></p>
+<p>Points: 116</p>
+<p># Comments: 60</p>
+]]></description><pubDate>Tue, 19 May 2026 05:04:49 +0000</pubDate><link>https://safedep.io/mini-shai-hulud-strikes-again-314-npm-packages-compromised/</link><dc:creator>theanonymousone</dc:creator><comments>https://news.ycombinator.com/item?id=48189368</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48189368</guid></item><item><title><![CDATA[PyTorch Landscape]]></title><description><![CDATA[
+<p>Article URL: <a href="https://pytorch.landscape2.io">https://pytorch.landscape2.io</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48189178">https://news.ycombinator.com/item?id=48189178</a></p>
+<p>Points: 47</p>
+<p># Comments: 10</p>
+]]></description><pubDate>Tue, 19 May 2026 04:29:39 +0000</pubDate><link>https://pytorch.landscape2.io</link><dc:creator>salamo</dc:creator><comments>https://news.ycombinator.com/item?id=48189178</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48189178</guid></item><item><title><![CDATA[Show HN: Hsrs – Type-Safe Haskell Bindings Generator for Rust]]></title><description><![CDATA[
+<p>Hey everyone! I've been working on hsrs, a type-safe Haskell Bindings Generator for Rust.<p>I couldn't really find any bindings generator that would create type-safe, rich bindings for Haskell from Rust. Naturally, both languages have rich type systems, so I was amazed that no awesome bindings generator already existed, hence I decided to write my own. hsrs feels very similar to pyo3 and napi-rs, and if you've used those, hsrs will feel right at home.<p>What's unique about hsrs as opposed to hs-bindgen is that it has type-safe bindings for rich types, like Result, Maybe, etc. while also generating Haskell bindings. The repo contains a minimal example, and more details are available in the haskell discourse: <a href="https://discourse.haskell.org/t/ann-hsrs-ergonomic-haskell-bindings-for-rust/14129" rel="nofollow">https://discourse.haskell.org/t/ann-hsrs-ergonomic-haskell-b...</a></p>
+<hr>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48189044">https://news.ycombinator.com/item?id=48189044</a></p>
+<p>Points: 36</p>
+<p># Comments: 2</p>
+]]></description><pubDate>Tue, 19 May 2026 04:06:09 +0000</pubDate><link>https://github.com/harmont-dev/hsrs</link><dc:creator>suis_siva</dc:creator><comments>https://news.ycombinator.com/item?id=48189044</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48189044</guid></item><item><title><![CDATA[Peter Neumann has died]]></title><description><![CDATA[
+<p>Article URL: <a href="https://www.tuhs.org/pipermail/tuhs/2026-May/033748.html">https://www.tuhs.org/pipermail/tuhs/2026-May/033748.html</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48188787">https://news.ycombinator.com/item?id=48188787</a></p>
+<p>Points: 137</p>
+<p># Comments: 8</p>
+]]></description><pubDate>Tue, 19 May 2026 03:17:45 +0000</pubDate><link>https://www.tuhs.org/pipermail/tuhs/2026-May/033748.html</link><dc:creator>pabs3</dc:creator><comments>https://news.ycombinator.com/item?id=48188787</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48188787</guid></item><item><title><![CDATA[Peter Salus has died]]></title><description><![CDATA[
+<p>Article URL: <a href="https://www.tuhs.org/pipermail/tuhs/2026-May/033750.html">https://www.tuhs.org/pipermail/tuhs/2026-May/033750.html</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48188665">https://news.ycombinator.com/item?id=48188665</a></p>
+<p>Points: 140</p>
+<p># Comments: 12</p>
+]]></description><pubDate>Tue, 19 May 2026 02:56:42 +0000</pubDate><link>https://www.tuhs.org/pipermail/tuhs/2026-May/033750.html</link><dc:creator>speckx</dc:creator><comments>https://news.ycombinator.com/item?id=48188665</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48188665</guid></item><item><title><![CDATA[The last six months in LLMs in five minutes]]></title><description><![CDATA[
+<p>Article URL: <a href="https://simonwillison.net/2026/May/19/5-minute-llms/">https://simonwillison.net/2026/May/19/5-minute-llms/</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48188183">https://news.ycombinator.com/item?id=48188183</a></p>
+<p>Points: 479</p>
+<p># Comments: 349</p>
+]]></description><pubDate>Tue, 19 May 2026 01:30:42 +0000</pubDate><link>https://simonwillison.net/2026/May/19/5-minute-llms/</link><dc:creator>yakkomajuri</dc:creator><comments>https://news.ycombinator.com/item?id=48188183</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48188183</guid></item><item><title><![CDATA[Pope Leo XIV’s first encyclical Magnifica humanitas to be published May 25]]></title><description><![CDATA[
+<p>Article URL: <a href="https://www.vaticannews.va/en/pope/news/2026-05/pope-leo-xiv-first-encyclical-magnifica-humanitas.html">https://www.vaticannews.va/en/pope/news/2026-05/pope-leo-xiv-first-encyclical-magnifica-humanitas.html</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48187201">https://news.ycombinator.com/item?id=48187201</a></p>
+<p>Points: 236</p>
+<p># Comments: 155</p>
+]]></description><pubDate>Mon, 18 May 2026 23:18:10 +0000</pubDate><link>https://www.vaticannews.va/en/pope/news/2026-05/pope-leo-xiv-first-encyclical-magnifica-humanitas.html</link><dc:creator>cucho</dc:creator><comments>https://news.ycombinator.com/item?id=48187201</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48187201</guid></item><item><title><![CDATA[Click (2016)]]></title><description><![CDATA[
+<p>Article URL: <a href="https://clickclickclick.click/">https://clickclickclick.click/</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48187054">https://news.ycombinator.com/item?id=48187054</a></p>
+<p>Points: 312</p>
+<p># Comments: 76</p>
+]]></description><pubDate>Mon, 18 May 2026 23:03:02 +0000</pubDate><link>https://clickclickclick.click/</link><dc:creator>andrewzeno</dc:creator><comments>https://news.ycombinator.com/item?id=48187054</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48187054</guid></item><item><title><![CDATA[Alignment pretraining: AI discourse creates self-fulfilling (mis)alignment]]></title><description><![CDATA[
+<p>Article URL: <a href="https://arxiv.org/abs/2601.10160">https://arxiv.org/abs/2601.10160</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48185938">https://news.ycombinator.com/item?id=48185938</a></p>
+<p>Points: 58</p>
+<p># Comments: 24</p>
+]]></description><pubDate>Mon, 18 May 2026 21:29:13 +0000</pubDate><link>https://arxiv.org/abs/2601.10160</link><dc:creator>anigbrowl</dc:creator><comments>https://news.ycombinator.com/item?id=48185938</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48185938</guid></item><item><title><![CDATA[Hyperpolyglot Lisp: Common Lisp, Racket, Clojure, Emacs Lisp]]></title><description><![CDATA[
+<p>Article URL: <a href="https://hyperpolyglot.org/lisp">https://hyperpolyglot.org/lisp</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48184322">https://news.ycombinator.com/item?id=48184322</a></p>
+<p>Points: 162</p>
+<p># Comments: 39</p>
+]]></description><pubDate>Mon, 18 May 2026 19:27:25 +0000</pubDate><link>https://hyperpolyglot.org/lisp</link><dc:creator>veqq</dc:creator><comments>https://news.ycombinator.com/item?id=48184322</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48184322</guid></item><item><title><![CDATA[Agora-1: The Multi-Agent World Model]]></title><description><![CDATA[
+<p>Article URL: <a href="https://odyssey.ml/introducing-agora-1">https://odyssey.ml/introducing-agora-1</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48183748">https://news.ycombinator.com/item?id=48183748</a></p>
+<p>Points: 113</p>
+<p># Comments: 22</p>
+]]></description><pubDate>Mon, 18 May 2026 18:43:30 +0000</pubDate><link>https://odyssey.ml/introducing-agora-1</link><dc:creator>olivercameron</dc:creator><comments>https://news.ycombinator.com/item?id=48183748</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48183748</guid></item><item><title><![CDATA[We let AIs run radio stations]]></title><description><![CDATA[
+<p>Hey HN!<p>I'm Lukas from Andon Labs. We let AIs run companies without humans in the loop and report to the public on what can go wrong. Previously, we've done experiments in retail (vending machines, stores, and cafes), but we just launched one in the media sector. We gave four AI agents all the tools they need to both broadcast radio shows live and handle all the business side of running a media company. The agents' revenue is so far terrible (you can try to strike a sponsor deal with them if you want!), but their shows are at times hilarious. You can listen to them at andon.fm, I hope you enjoy this!</p>
+<hr>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48183301">https://news.ycombinator.com/item?id=48183301</a></p>
+<p>Points: 273</p>
+<p># Comments: 216</p>
+]]></description><pubDate>Mon, 18 May 2026 18:12:18 +0000</pubDate><link>https://andonlabs.com/blog/andon-fm</link><dc:creator>lukaspetersson</dc:creator><comments>https://news.ycombinator.com/item?id=48183301</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48183301</guid></item><item><title><![CDATA[Elon Musk has lost his lawsuit against Sam Altman and OpenAI]]></title><description><![CDATA[
+<p>Article URL: <a href="https://techcrunch.com/2026/05/18/elon-musk-has-lost-his-lawsuit-against-sam-altman-and-openai/">https://techcrunch.com/2026/05/18/elon-musk-has-lost-his-lawsuit-against-sam-altman-and-openai/</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48182754">https://news.ycombinator.com/item?id=48182754</a></p>
+<p>Points: 971</p>
+<p># Comments: 485</p>
+]]></description><pubDate>Mon, 18 May 2026 17:38:22 +0000</pubDate><link>https://techcrunch.com/2026/05/18/elon-musk-has-lost-his-lawsuit-against-sam-altman-and-openai/</link><dc:creator>nycdatasci</dc:creator><comments>https://news.ycombinator.com/item?id=48182754</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48182754</guid></item><item><title><![CDATA[Cursor Introduces Composer 2.5]]></title><description><![CDATA[
+<p><a href="https://twitter.com/cursor_ai/status/2056415413077233983" rel="nofollow">https://twitter.com/cursor_ai/status/2056415413077233983</a></p>
+<hr>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48182516">https://news.ycombinator.com/item?id=48182516</a></p>
+<p>Points: 160</p>
+<p># Comments: 116</p>
+]]></description><pubDate>Mon, 18 May 2026 17:20:43 +0000</pubDate><link>https://cursor.com/blog/composer-2-5</link><dc:creator>asar</dc:creator><comments>https://news.ycombinator.com/item?id=48182516</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48182516</guid></item><item><title><![CDATA[Anthropic acquires Stainless]]></title><description><![CDATA[
+<p>Article URL: <a href="https://www.anthropic.com/news/anthropic-acquires-stainless">https://www.anthropic.com/news/anthropic-acquires-stainless</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48182281">https://news.ycombinator.com/item?id=48182281</a></p>
+<p>Points: 458</p>
+<p># Comments: 325</p>
+]]></description><pubDate>Mon, 18 May 2026 17:01:21 +0000</pubDate><link>https://www.anthropic.com/news/anthropic-acquires-stainless</link><dc:creator>tomeraberbach</dc:creator><comments>https://news.ycombinator.com/item?id=48182281</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48182281</guid></item><item><title><![CDATA[1024000^2 Blocks, 2B2T Minecraft Server World Download Project, and Discoveries]]></title><description><![CDATA[
+<p>Article URL: <a href="https://github.com/2b2tplace/1m_release">https://github.com/2b2tplace/1m_release</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48180204">https://news.ycombinator.com/item?id=48180204</a></p>
+<p>Points: 146</p>
+<p># Comments: 91</p>
+]]></description><pubDate>Mon, 18 May 2026 14:13:07 +0000</pubDate><link>https://github.com/2b2tplace/1m_release</link><dc:creator>exploraz</dc:creator><comments>https://news.ycombinator.com/item?id=48180204</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48180204</guid></item><item><title><![CDATA[Show HN: Files.md – Open-source alternative to Obsidian]]></title><description><![CDATA[
+<p>Article URL: <a href="https://github.com/zakirullin/files.md">https://github.com/zakirullin/files.md</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48179677">https://news.ycombinator.com/item?id=48179677</a></p>
+<p>Points: 642</p>
+<p># Comments: 312</p>
+]]></description><pubDate>Mon, 18 May 2026 13:33:33 +0000</pubDate><link>https://github.com/zakirullin/files.md</link><dc:creator>zakirullin</dc:creator><comments>https://news.ycombinator.com/item?id=48179677</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48179677</guid></item><item><title><![CDATA[AI eats the world (Spring 26) [pdf]]]></title><description><![CDATA[
+<p>Article URL: <a href="https://static1.squarespace.com/static/50363cf324ac8e905e7df861/t/6a0af5d0484fbf5fe9a7743e/1779103184855/2026-Spring-AI.pdf">https://static1.squarespace.com/static/50363cf324ac8e905e7df861/t/6a0af5d0484fbf5fe9a7743e/1779103184855/2026-Spring-AI.pdf</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48179021">https://news.ycombinator.com/item?id=48179021</a></p>
+<p>Points: 240</p>
+<p># Comments: 134</p>
+]]></description><pubDate>Mon, 18 May 2026 12:49:28 +0000</pubDate><link>https://static1.squarespace.com/static/50363cf324ac8e905e7df861/t/6a0af5d0484fbf5fe9a7743e/1779103184855/2026-Spring-AI.pdf</link><dc:creator>topherjaynes</dc:creator><comments>https://news.ycombinator.com/item?id=48179021</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48179021</guid></item><item><title><![CDATA[Energy return in running shoes explained (2025)]]></title><description><![CDATA[
+<p>Article URL: <a href="https://runrepeat.com/guides/energy-return-in-running-shoes">https://runrepeat.com/guides/energy-return-in-running-shoes</a></p>
+<p>Comments URL: <a href="https://news.ycombinator.com/item?id=48172234">https://news.ycombinator.com/item?id=48172234</a></p>
+<p>Points: 9</p>
+<p># Comments: 4</p>
+]]></description><pubDate>Sun, 17 May 2026 19:12:15 +0000</pubDate><link>https://runrepeat.com/guides/energy-return-in-running-shoes</link><dc:creator>jstrieb</dc:creator><comments>https://news.ycombinator.com/item?id=48172234</comments><guid isPermaLink="false">https://news.ycombinator.com/item?id=48172234</guid></item></channel></rss>

@@ -84,7 +84,7 @@
 - newsletter-ai quality duplicates
 - newsletter-ai quality sections
 
-## Replay (v0.3.15 governance)
+## Replay (v0.3.15 governance, v0.3.16 smoke fixture)
 - newsletter-ai replay list
 - newsletter-ai replay list --replay-dir data/fixtures/replay
 - newsletter-ai replay inspect data/fixtures/replay/rss_xxx.xml
@@ -102,6 +102,13 @@
 - Preserves non-tracking params
 - Handles XML-escaped ampersands
 - Sanitized XML remains parseable
+
+### Smoke fixture (v0.3.16)
+- First real-world replay fixture: `data/fixtures/replay/rss_hnrss-frontpage-smoke_20260519_111736.xml`
+- Source: https://hnrss.org/frontpage (public HN frontpage RSS)
+- 20 items, HTTP 200, no token/cookie/auth
+- Used for offline replay / regression, not real-time HN
+- Capture: `sources fetch --allow-network --capture-replay`
 
 ## Feedback (v0.3.13 hardened)
 - newsletter-ai feedback "like 1" --dry-run

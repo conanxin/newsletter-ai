@@ -281,7 +281,7 @@ def main():
 
             # Capture replay fixtures for successful rss_url sources
             if capture_replay and allow_network:
-                from .replay import save_rss_replay_fixture, build_replay_metadata
+                from .replay import save_rss_replay_fixture, build_replay_metadata, sanitize_replay_xml
                 from .rss import parse_rss_xml
                 from .fetch import fetch_rss_url_source
 
@@ -291,11 +291,16 @@ def main():
                     source_id = source.get("source_id", "unknown")
                     fetch_result = fetch_rss_url_source(source, allow_network=True)
                     if fetch_result.ok:
-                        raw_items = parse_rss_xml(fetch_result.text)
-                        meta = build_replay_metadata(source, fetch_result, item_count=len(raw_items))
+                        sanitized_xml, stripped_count = sanitize_replay_xml(fetch_result.text)
+                        raw_items = parse_rss_xml(sanitized_xml)
+                        meta = build_replay_metadata(
+                            source, fetch_result, item_count=len(raw_items),
+                            sanitized=True,
+                            stripped_tracking_params_count=stripped_count,
+                        )
                         xml_path = save_rss_replay_fixture(
                             source_id=source_id,
-                            xml_text=fetch_result.text,
+                            xml_text=sanitized_xml,
                             output_dir=replay_dir,
                             metadata=meta,
                         )
