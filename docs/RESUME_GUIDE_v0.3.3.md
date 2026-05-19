@@ -53,4 +53,13 @@ Digest Sectioning by Topic
 **当前分支**：harden-v0.2-newsletter-ai
 
 **v0.3.2.1 完成**：quality sources / quality duplicates 已注册，quality CLI 四个入口全部可用。
-**准备状态**：v0.3.3 规划文档已生成，可开始第一阶段开发。
+
+**v0.3.3 第一阶段完成**：
+- sections.py 已实现
+- render.py 已实现 Markdown / Telegram 分区输出
+- pipeline 已集成 sectioning
+- quality report 已包含 section_distribution
+- global item_index 保持不变
+- feedback "like 1" 不受影响
+
+**当前状态**：第一阶段核心功能已完成，可继续第二阶段测试强化。

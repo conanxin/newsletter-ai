@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.3 (2026-05)
+- Digest Sectioning by Topic
+- sections.py: assign_section + group_items_into_sections
+- render.py: Markdown and Telegram sectioned output
+- pipeline integration: sectioning after snapshot (global item_index preserved)
+- quality report: added section_distribution
+- items show / feedback "like 1" still use global index
+- No themes CLI system implemented
+
 ## v0.3.2.1 (2026-05)
 - fix: quality sources and quality duplicates CLI registration
 - quality sources: shows source_quality_score table sorted by score

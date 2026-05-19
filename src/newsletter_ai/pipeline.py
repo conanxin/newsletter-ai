@@ -73,6 +73,9 @@ def run_daily_pipeline(
 
                 elif step_name == "digest":
                     from .snapshot import create_item_snapshot
+                    from .sections import group_items_into_sections
+                    from .render import render_markdown_digest, render_telegram_digest
+
                     ranked_items = cfg.get("_ranked_items", [])
                     snap = create_item_snapshot(
                         ranked_items,
@@ -80,11 +83,20 @@ def run_daily_pipeline(
                         cfg["DATA_DIR"],
                         run_id=started
                     )
+
+                    # v0.3.3: sectioning after snapshot (global index preserved)
+                    sections = group_items_into_sections(ranked_items)
+                    md_digest = render_markdown_digest(sections)
+                    tg_digest = render_telegram_digest(sections)
+
                     step_result.update({
                         "status": "success",
                         "finished_at": _now_iso(),
                         "duration_sec": round(time.time() - start_time, 3),
                         "snapshot": snap,
+                        "section_count": len(sections),
+                        "markdown_digest": md_digest[:200] + "..." if len(md_digest) > 200 else md_digest,
+                        "telegram_digest": tg_digest[:200] + "..." if len(tg_digest) > 200 else tg_digest,
                     })
 
                 else:  # fetch

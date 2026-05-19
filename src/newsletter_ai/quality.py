@@ -1,4 +1,4 @@
-"""Source Quality Tracking, Scoring and Digest Quality Report for newsletter-ai v0.3.2"""
+"""Source Quality Tracking, Scoring and Digest Quality Report for newsletter-ai v0.3.2 + v0.3.3 section_distribution"""
 
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -42,6 +42,7 @@ class QualityReport:
     source_details: List[SourceQuality] = field(default_factory=list)
     duplicate_reason_counts: Dict[str, int] = field(default_factory=dict)
     fuzzy_duplicate_count: int = 0
+    section_distribution: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -156,6 +157,22 @@ def generate_quality_report(
         sq.source_score_breakdown = breakdown
         sq.recommended_action = action
         report.source_details.append(sq)
+
+    # v0.3.3: populate section_distribution
+    try:
+        from .sections import group_items_into_sections
+        sections = group_items_into_sections(items_after_dedupe)
+        report.section_distribution = {
+            sec.section_id: {
+                "section_label": sec.section_label,
+                "item_count": sec.item_count,
+                "sources": sec.top_sources,
+                "topic_tags": list({tag for item in sec.items for tag in item.get("topic_tags", [])})
+            }
+            for sec in sections
+        }
+    except Exception:
+        report.section_distribution = {}
 
     return report
 
