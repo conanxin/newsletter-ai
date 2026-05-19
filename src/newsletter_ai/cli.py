@@ -1,4 +1,4 @@
-"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix."""
+"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality."""
 
 import argparse
 import json
@@ -13,7 +13,7 @@ from .feedback import apply_feedback, load_preferences, resolve_item_from_snapsh
 def main():
     parser = argparse.ArgumentParser(
         prog="newsletter-ai",
-        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI"
+        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality"
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -40,9 +40,9 @@ def main():
     subparsers.add_parser("health", help="Health report")
     subparsers.add_parser("status", help="Pipeline status")
 
-    # quality (v0.3.1R verified registration)
+    # quality (v0.3.4: added "sections")
     quality_p = subparsers.add_parser("quality", help="Quality report commands")
-    quality_p.add_argument("subcmd", choices=["show", "json", "explain", "sources", "duplicates"])
+    quality_p.add_argument("subcmd", choices=["show", "json", "explain", "sources", "duplicates", "sections"])
 
     args = parser.parse_args()
     cfg = load_config()
@@ -97,13 +97,13 @@ def main():
         latest_md = quality_dir / "latest_quality.md"
         latest_json = quality_dir / "latest_quality.json"
 
+        # Only auto-generate demo for show/json/explain to preserve graceful error for sources/duplicates/sections
         if args.subcmd in ("show", "json", "explain"):
             if not latest_json.exists():
-                # Auto-generate a minimal report if missing
                 demo_sources = [
                     {"source": "fixture", "status": "ok", "raw_item_count": 5, "normalized_item_count": 4, "final_item_count": 3, "warnings": []}
                 ]
-                demo_items = [{"id": "1", "topic": "ai", "source": "fixture"}]
+                demo_items = [{"id": "1", "topic": "ai", "source": "fixture", "base_score": 0.8}]
                 report = generate_quality_report(str(uuid.uuid4())[:8], demo_sources, demo_items, duplicate_count=1, malformed_count=0, empty_count=0)
                 save_quality_report(report, output_dir)
 
@@ -152,6 +152,33 @@ def main():
                 print(f"Fuzzy duplicate count: {data.get('fuzzy_duplicate_count', 0)}")
             else:
                 print("No quality report found. Run daily first.")
+        elif args.subcmd == "sections":
+            if latest_json.exists():
+                data = json.loads(latest_json.read_text())
+                sections = data.get("section_distribution", {})
+                if not sections:
+                    print("No section distribution found in quality report.")
+                    sys.exit(0)
+
+                print("Section Quality Report (v0.3.4)")
+                print("=" * 60)
+                for sid, sec in sections.items():
+                    print(f"\n[{sec.get('section_label', sid)}] ({sid})")
+                    print(f"  Items: {sec.get('item_count', 0)}")
+                    print(f"  Avg Score: {sec.get('average_score', 0.0):.3f}")
+                    print(f"  Avg Quality Score: {sec.get('average_quality_score', 0.0):.3f}")
+                    print(f"  Sources ({sec.get('source_count', 0)}): {', '.join(sec.get('sources', [])[:5])}")
+                    print(f"  Topic Tags: {', '.join(sec.get('topic_tags', [])[:5])}")
+                    if sec.get('warnings'):
+                        print(f"  Warnings: {', '.join(sec['warnings'])}")
+                    titles = sec.get('representative_titles', [])
+                    if titles:
+                        print(f"  Representative Titles:")
+                        for t in titles:
+                            print(f"    - {t}")
+                print("\n" + "=" * 60)
+            else:
+                print("No quality report found. Please run: newsletter-ai daily --dry-run")
         sys.exit(0)
 
     else:

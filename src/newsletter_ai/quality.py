@@ -158,19 +158,69 @@ def generate_quality_report(
         sq.recommended_action = action
         report.source_details.append(sq)
 
-    # v0.3.3: populate section_distribution
+    # v0.3.4: Enhanced section_distribution with quality metrics and warnings
     try:
         from .sections import group_items_into_sections
         sections = group_items_into_sections(items_after_dedupe)
-        report.section_distribution = {
-            sec.section_id: {
+
+        section_dist = {}
+        total_items = len(items_after_dedupe)
+
+        for sec in sections:
+            items = sec.items
+            item_count = len(items)
+
+            # Calculate average scores (use base_score if present, else default)
+            scores = [item.get("base_score", 0.5) for item in items]
+            avg_score = round(sum(scores) / max(len(scores), 1), 3)
+
+            # Average source_quality_score if available in items
+            quality_scores = [item.get("source_quality_score", 0.0) for item in items]
+            avg_quality_score = round(sum(quality_scores) / max(len(quality_scores), 1), 3)
+
+            # Sources and counts
+            sources = sec.top_sources
+            source_count = len(sources)
+
+            # Topic and style tags
+            topic_tags = list({tag for item in items for tag in item.get("topic_tags", [])})
+            style_tags = list({tag for item in items for tag in item.get("style_tags", [])})
+
+            # Duplicate stats within section
+            dup_count = sum(1 for item in items if item.get("is_duplicate", False))
+            fuzzy_dup_count = sum(1 for item in items if item.get("duplicate_reason") == "fuzzy_title_source")
+
+            # Representative titles (max 3)
+            representative_titles = [item.get("title", "") for item in items[:3]]
+
+            # Warnings
+            warnings = []
+            if sec.section_id == "other" and item_count > total_items * 0.35:
+                warnings.append("other_section_too_large")
+            if source_count == 1 and item_count >= 3:
+                warnings.append("single_source_section")
+            if item_count <= 2 and len(sections) >= 6:
+                warnings.append("fragmented_section")
+            if (dup_count + fuzzy_dup_count) > item_count * 0.4:
+                warnings.append("duplicate_heavy_section")
+
+            section_dist[sec.section_id] = {
+                "section_id": sec.section_id,
                 "section_label": sec.section_label,
-                "item_count": sec.item_count,
-                "sources": sec.top_sources,
-                "topic_tags": list({tag for item in sec.items for tag in item.get("topic_tags", [])})
+                "item_count": item_count,
+                "average_score": avg_score,
+                "average_quality_score": avg_quality_score,
+                "sources": sources,
+                "source_count": source_count,
+                "topic_tags": topic_tags,
+                "style_tags": style_tags,
+                "duplicate_count": dup_count,
+                "fuzzy_duplicate_count": fuzzy_dup_count,
+                "representative_titles": representative_titles,
+                "warnings": warnings
             }
-            for sec in sections
-        }
+
+        report.section_distribution = section_dist
     except Exception:
         report.section_distribution = {}
 
