@@ -1,7 +1,6 @@
 """End-to-End Fixture-based Regression Test for v0.3.5"""
 
 import json
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -12,21 +11,14 @@ from newsletter_ai.sections import group_items_into_sections
 from newsletter_ai.render import render_markdown_digest, render_telegram_digest
 from newsletter_ai.quality import generate_quality_report
 from newsletter_ai.feedback import resolve_item_from_snapshot, apply_feedback
-
-
-FIXTURE_PATH = Path(__file__).parent / "fixtures" / "e2e_items.json"
-
-
-def load_e2e_fixture():
-    with open(FIXTURE_PATH, encoding="utf-8") as f:
-        return json.load(f)
+from newsletter_ai.fixtures import load_dry_run_items
 
 
 def test_e2e_full_fixture_flow(tmp_path):
     """Complete fixture-based E2E regression covering the entire daily chain."""
-    items = load_e2e_fixture()
+    # Now reuses the shared fixture loader
+    items = load_dry_run_items()
 
-    # Provide minimal config
     cfg = {
         "DATA_DIR": tmp_path / "data",
         "OUTPUT_DIR": tmp_path,
@@ -87,4 +79,4 @@ def test_e2e_full_fixture_flow(tmp_path):
     history_file = tmp_path / "data" / "state" / "preferences_history.jsonl"
     assert history_file.exists()
 
-    print("✅ E2E Fixture Flow Regression PASSED")
+    print("✅ E2E Fixture Flow Regression PASSED (now using shared loader)")

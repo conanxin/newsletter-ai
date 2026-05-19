@@ -1,12 +1,13 @@
-# Command Card v0.3.5
+# Command Card v0.3.6
 
 ## Release Gate
 - make release-check
 - make validate
 
-## Daily Dry-Run
+## Daily Dry-Run (now uses unified fixture)
 - newsletter-ai daily --dry-run
-- newsletter-ai daily --dry-run --fixtures tests/fixtures/rss/
+- Uses data/fixtures/dry_run_items.json by default
+- Generates snapshot, sectioned digest, telegram text, and quality report
 
 ## Inspection
 - newsletter-ai items show
@@ -20,32 +21,18 @@
 - newsletter-ai health
 - newsletter-ai status
 
-## Quality (v0.3.5)
+## Quality
 - newsletter-ai quality show
 - newsletter-ai quality explain
 - newsletter-ai quality sources
 - newsletter-ai quality duplicates
 - newsletter-ai quality sections
 
-## v0.3.5 E2E Fixture Regression
-- Full offline regression test: tests/test_e2e_fixture_flow.py
-- Fixture: tests/fixtures/e2e_items.json (AI/LLM, Business, Media, duplicate, fallback "other" section)
-- Covers: ranking → snapshot (global item_index) → sectioned render (markdown + telegram) → quality report → feedback → preferences_history
-- All writes use tmp_path (no pollution of real data/state)
-- quality sections / sources / duplicates are regressed
-- feedback "like 1" item resolution is regressed
-- No network, no Telegram send, no LLM
+## v0.3.6 Fixture Unification
+- src/newsletter_ai/fixtures.py: load_dry_run_items()
+- data/fixtures/dry_run_items.json: official dry-run fixture
+- E2E tests and CLI dry-run now share the same loader
+- Reduced behavior drift between test and production dry-run
 
-## v0.3.4 Section Quality
-- newsletter-ai quality sections 显示每个 section 的：
-  - item_count, average_score, sources, topic_tags, warnings
-- Warnings 包括：other_section_too_large, single_source_section, fragmented_section, duplicate_heavy_section
-
-## v0.3.3 Sectioning
-- digest now outputs by topic sections
-- global item_index preserved for feedback
-- quality report includes enhanced section_distribution
-
-## v0.3.2.1 Quality
-- quality sources: shows source_quality_score table
-- quality duplicates: shows duplicate_reason_counts + fuzzy_duplicate_count
+## v0.3.5 E2E Regression
+- Full offline E2E test using fixture data

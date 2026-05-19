@@ -1,0 +1,52 @@
+[
+  {
+    "id": "item-1",
+    "source": "techcrunch",
+    "title": "OpenAI releases new reasoning model",
+    "url": "https://example.com/openai-reasoning",
+    "summary": "OpenAI has launched a new model focused on step-by-step reasoning.",
+    "topic_tags": ["ai", "llm"],
+    "style_tags": ["analysis"],
+    "base_score": 0.92
+  },
+  {
+    "id": "item-2",
+    "source": "stratechery",
+    "title": "The economics of foundation models",
+    "url": "https://example.com/economics-foundation-models",
+    "summary": "Deep analysis on the business models behind large AI models.",
+    "topic_tags": ["business", "ai"],
+    "style_tags": ["essay"],
+    "base_score": 0.88
+  },
+  {
+    "id": "item-3",
+    "source": "techcrunch",
+    "title": "Anthropic raises $1.5B for safety research",
+    "url": "https://example.com/anthropic-funding",
+    "summary": "Anthropic secures major funding to advance AI safety.",
+    "topic_tags": ["ai", "safety"],
+    "style_tags": ["news"],
+    "base_score": 0.85
+  },
+  {
+    "id": "item-4",
+    "source": "theverge",
+    "title": "The rise of AI-generated media",
+    "url": "https://example.com/ai-media",
+    "summary": "How generative AI is transforming film, music and art.",
+    "topic_tags": ["media", "culture"],
+    "style_tags": ["feature"],
+    "base_score": 0.79
+  },
+  {
+    "id": "item-5",
+    "source": "stratechery",
+    "title": "Why strategy still matters in the AI era",
+    "url": "https://example.com/strategy-ai-era",
+    "summary": "Even with powerful models, strategic thinking remains critical.",
+    "topic_tags": ["business", "strategy"],
+    "style_tags": ["essay"],
+    "base_score": 0.81
+  }
+]

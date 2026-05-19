@@ -58,12 +58,16 @@ def run_daily_pipeline(
             try:
                 if step_name == "rank":
                     from .ranking import rank_items
-                    mock_items = [
-                        {"id": "1", "source": "techcrunch", "title": "AI Breakthrough", "base_score": 0.65, "topic_tags": ["ai"], "style_tags": ["analysis"]},
-                        {"id": "2", "source": "stratechery", "title": "Deep Tech Analysis", "base_score": 0.72, "topic_tags": ["tech"], "style_tags": ["essay"]},
-                    ]
-                    ranked = rank_items(mock_items, cfg)
-                    cfg["_ranked_items"] = ranked
+                    from .fixtures import load_dry_run_items, normalize_fixture_item
+                    try:
+                        raw_items = load_dry_run_items()
+                    except FileNotFoundError:
+                        raw_items = [
+                            {"id": "1", "source": "techcrunch", "title": "AI Breakthrough", "base_score": 0.65, "topic_tags": ["ai"], "style_tags": ["analysis"]},
+                            {"id": "2", "source": "stratechery", "title": "Deep Tech Analysis", "base_score": 0.72, "topic_tags": ["tech"], "style_tags": ["essay"]},
+                        ]
+                    normalized_items = [normalize_fixture_item(item) for item in raw_items]
+                    ranked = rank_items(normalized_items, cfg)
                     step_result.update({
                         "status": "success",
                         "finished_at": _now_iso(),
@@ -77,6 +81,10 @@ def run_daily_pipeline(
                     from .render import render_markdown_digest, render_telegram_digest
 
                     ranked_items = cfg.get("_ranked_items", [])
+                    if not ranked_items:
+                        from .fixtures import load_dry_run_items, normalize_fixture_item
+                        raw = load_dry_run_items()
+                        ranked_items = [normalize_fixture_item(i) for i in raw]
                     snap = create_item_snapshot(
                         ranked_items,
                         cfg["OUTPUT_DIR"],
