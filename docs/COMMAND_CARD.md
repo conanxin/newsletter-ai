@@ -1,4 +1,4 @@
-# Command Card v0.3.9
+# Command Card v0.3.10
 
 ## Release Gate
 - make release-check
@@ -7,6 +7,12 @@
 ## Daily Dry-Run
 - newsletter-ai daily --dry-run
 - Uses data/fixtures/dry_run_items.json by default (normalized)
+
+## Daily with Source Registry (v0.3.10)
+- newsletter-ai daily --dry-run --source-registry data/fixtures/source_registry.json
+- Reads enabled rss_fixture sources from registry
+- Requires --dry-run or --no-publish
+- Records input_mode / source_count / item_count in last-run-status
 
 ## Source Registry (v0.3.9)
 - newsletter-ai sources list

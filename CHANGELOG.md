@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.10 (2026-05)
+- Controlled Offline Source Pipeline
+- Added `--source-registry` CLI argument to `daily --dry-run`
+- Pipeline supports two offline input modes:
+  - `fixture_json` (default): data/fixtures/dry_run_items.json
+  - `source_registry`: reads enabled rss_fixture sources from registry
+- `last-run-status.json` records `input_mode`, `source_count`, `item_count`
+- `--source-registry` requires `--dry-run` or `--no-publish` for safety
+- Invalid registry path falls back to default fixture mode gracefully
+- Added `tests/test_pipeline_source_registry.py`
+- Added `tests/test_cli_daily_source_registry.py`
+
 ## v0.3.9 (2026-05)
 - Source Registry + Offline Ingestion Bridge
 - Added `src/newsletter_ai/sources.py` with source registry loader and offline ingestion

@@ -1,4 +1,4 @@
-"""v0.2.4S Pipeline runner with full dry-run snapshot support."""
+"""v0.2.4S Pipeline runner with full dry-run snapshot support + v0.3.10 source registry mode."""
 
 import json
 import time
@@ -24,15 +24,25 @@ def _write_last_run_status(status: Dict[str, Any], cfg: Dict) -> None:
 def run_daily_pipeline(
     cfg: Optional[Dict] = None,
     dry_run: bool = False,
-    no_publish: bool = False
+    no_publish: bool = False,
+    source_registry: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    """Main daily pipeline with structured step logging and dry-run snapshot support."""
+    """Main daily pipeline with structured step logging and dry-run snapshot support.
+
+    Args:
+        source_registry: Optional path to a source registry JSON file.
+                         When provided and dry_run is True, pipeline reads
+                         enabled rss_fixture sources instead of default dry_run_items.json.
+    """
     if cfg is None:
         cfg = load_config()
 
     steps: List[Dict[str, Any]] = []
     overall_status = "success"
     failed_step = None
+    input_mode = "fixture_json"
+    source_count = 0
+    item_count = 0
 
     pipeline_steps = [
         ("fetch", "scripts/fetch_rss_minimal.py"),
@@ -59,15 +69,35 @@ def run_daily_pipeline(
                 if step_name == "rank":
                     from .ranking import rank_items
                     from .fixtures import load_dry_run_items, normalize_fixture_item
-                    try:
-                        raw_items = load_dry_run_items()
-                    except FileNotFoundError:
-                        raw_items = [
-                            {"id": "1", "source": "techcrunch", "title": "AI Breakthrough", "base_score": 0.65, "topic_tags": ["ai"], "style_tags": ["analysis"]},
-                            {"id": "2", "source": "stratechery", "title": "Deep Tech Analysis", "base_score": 0.72, "topic_tags": ["tech"], "style_tags": ["essay"]},
-                        ]
-                    normalized_items = [normalize_fixture_item(item) for item in raw_items]
+                    from .sources import load_source_registry, validate_source_registry, enabled_sources, ingest_offline_sources
+
+                    if source_registry is not None and source_registry.exists():
+                        # v0.3.10: controlled offline source registry mode
+                        registry_sources = load_source_registry(source_registry)
+                        validation = validate_source_registry(registry_sources)
+                        if not validation["valid"]:
+                            raise ValueError(f"Source registry invalid: {validation['errors']}")
+
+                        enabled = enabled_sources(registry_sources)
+                        raw_items = ingest_offline_sources(enabled)
+                        input_mode = "source_registry"
+                        source_count = len(enabled)
+                        item_count = len(raw_items)
+                        normalized_items = raw_items
+                    else:
+                        # Default v0.3.6 dry-run fixture mode
+                        try:
+                            raw_items = load_dry_run_items()
+                        except FileNotFoundError:
+                            raw_items = [
+                                {"id": "1", "source": "techcrunch", "title": "AI Breakthrough", "base_score": 0.65, "topic_tags": ["ai"], "style_tags": ["analysis"]},
+                                {"id": "2", "source": "stratechery", "title": "Deep Tech Analysis", "base_score": 0.72, "topic_tags": ["tech"], "style_tags": ["essay"]},
+                            ]
+                        normalized_items = [normalize_fixture_item(item) for item in raw_items]
+                        item_count = len(normalized_items)
+
                     ranked = rank_items(normalized_items, cfg)
+                    cfg["_ranked_items"] = ranked
                     step_result.update({
                         "status": "success",
                         "finished_at": _now_iso(),
@@ -175,6 +205,9 @@ def run_daily_pipeline(
         "failed_step": failed_step,
         "dry_run": dry_run,
         "no_publish": no_publish,
+        "input_mode": input_mode,
+        "source_count": source_count,
+        "item_count": item_count,
     }
 
     _write_last_run_status(final_status, cfg)

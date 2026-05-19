@@ -1,4 +1,4 @@
-"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality + v0.3.9 source registry."""
+"""CLI entrypoint for newsletter-ai v0.2.4S + v0.3.1R quality fix + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline."""
 
 import argparse
 import json
@@ -13,14 +13,20 @@ from .feedback import apply_feedback, load_preferences, resolve_item_from_snapsh
 def main():
     parser = argparse.ArgumentParser(
         prog="newsletter-ai",
-        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality + v0.3.9 source registry"
+        description="newsletter-ai v0.2.4S + v0.3.1R quality CLI + v0.3.4 section quality + v0.3.9 source registry + v0.3.10 controlled offline source pipeline"
     )
     subparsers = parser.add_subparsers(dest="command")
 
-    # daily
+    # daily (v0.3.10: added --source-registry)
     daily_p = subparsers.add_parser("daily", help="Run daily pipeline")
     daily_p.add_argument("--dry-run", action="store_true")
     daily_p.add_argument("--no-publish", action="store_true")
+    daily_p.add_argument(
+        "--source-registry",
+        type=Path,
+        default=None,
+        help="Path to offline source registry JSON (only with --dry-run or --no-publish). Uses local RSS fixtures, no network requests."
+    )
 
     # feedback
     fb_p = subparsers.add_parser("feedback", help="Apply feedback using snapshot")
@@ -52,7 +58,22 @@ def main():
     cfg = load_config()
 
     if args.command == "daily":
-        status = run_daily_pipeline(cfg=cfg, dry_run=args.dry_run, no_publish=args.no_publish)
+        # v0.3.10: --source-registry only allowed with --dry-run or --no-publish
+        source_registry = getattr(args, "source_registry", None)
+        if source_registry is not None and not (args.dry_run or args.no_publish):
+            print("Error: --source-registry requires --dry-run or --no-publish")
+            sys.exit(1)
+
+        if source_registry is not None and not source_registry.exists():
+            print(f"Error: Source registry not found: {source_registry}")
+            sys.exit(1)
+
+        status = run_daily_pipeline(
+            cfg=cfg,
+            dry_run=args.dry_run,
+            no_publish=args.no_publish,
+            source_registry=source_registry,
+        )
         print(status)
         sys.exit(0 if status.get("status") == "success" else 1)
 
