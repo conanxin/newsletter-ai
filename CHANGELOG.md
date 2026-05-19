@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.3.14 (2026-05)
+- Controlled Network Smoke + Replay Fixture Capture
+- New module `src/newsletter_ai/replay.py`:
+  - `save_rss_replay_fixture(...)` — saves captured RSS XML + metadata JSON
+  - `load_rss_replay_fixture(...)` — loads replay XML for offline testing
+  - `sanitize_replay_xml(...)` — no-op sanitizer (placeholder for future tracking-query stripping)
+  - `build_replay_metadata(...)` — builds metadata with source_id, url, fetched_at, status_code, item_count, sha256, generated_by
+- New source type `rss_replay`:
+  - Behaves like `rss_fixture` but reads from `data/fixtures/replay/`
+  - Fully offline, no network required
+  - Validated by `sources validate`
+- Enhanced `sources fetch` CLI:
+  - `--allow-network` — required for real RSS fetching (unchanged guard)
+  - `--capture-replay` — saves successful rss_url fetches as replay fixtures (requires `--allow-network`)
+  - `--replay-dir` — custom replay output directory (default: `data/fixtures/replay/`)
+  - `--source-id` — filter to a single source
+- Fetch guard:
+  - `--capture-replay` without `--allow-network` exits with clear error
+  - Failed fetches do not generate replay fixtures
+  - Single source failure does not block others
+- Tests:
+  - `tests/test_replay.py` — 8 tests covering save/load/metadata/sanitize
+  - `tests/test_cli_sources_fetch_replay.py` — 5 tests covering guard, capture, failure, source-id filter
+  - `tests/test_sources_replay_type.py` — 7 tests covering validate, ingest, normalization, mixed registry
+- All tests use mock XML, no real network dependency
+
 ## v0.3.13 (2026-05)
 - CLI Feedback Parser Hardening
 - Fixed `feedback` subcommand to accept both quoted and unquoted command forms:

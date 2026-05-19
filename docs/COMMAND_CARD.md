@@ -21,15 +21,33 @@
 - --allow-network requires --dry-run or --no-publish for safety
 - Default is always offline — no implicit network access
 
-## Source Registry (v0.3.9, v0.3.11, v0.3.12)
+## Source Registry (v0.3.9, v0.3.11, v0.3.12, v0.3.14)
 - newsletter-ai sources list
 - newsletter-ai sources validate
 - newsletter-ai sources ingest-fixtures
 - newsletter-ai sources report
 - newsletter-ai sources fetch --registry data/fixtures/source_registry.json
-- newsletter-ai sources fetch --registry data/fixtures/source_registry.json --allow-network
+- newsletter-ai sources fetch --registry data/fixtures/source_registry.json --allow-network --capture-replay
+- newsletter-ai sources fetch --registry data/fixtures/source_registry.json --allow-network --capture-replay --source-id sample-ai-feed
 - Registry: data/fixtures/source_registry.json
-- Supports two source types:
+- Supports three source types:
+  - rss_fixture: offline local XML file (default, safe)
+  - rss_url: real RSS feed URL (requires --allow-network)
+  - rss_replay: offline replay fixture from captured fetch (v0.3.14)
+- Per-source status: success / failed / disabled / empty / skipped
+
+### Fetch flags
+- `--allow-network` — required for real RSS fetching (default: offline)
+- `--capture-replay` — saves successful rss_url fetches as replay fixtures (requires `--allow-network`)
+- `--replay-dir` — custom replay output directory (default: `data/fixtures/replay/`)
+- `--source-id` — filter to a single source
+
+### Replay workflow
+1. `sources fetch --allow-network --capture-replay` → captures real RSS to `data/fixtures/replay/`
+2. Add `rss_replay` source to registry pointing at captured fixture
+3. Future runs use `rss_replay` — fully offline, no network required
+
+## Feedback (v0.3.13 hardened)
   - rss_fixture: offline local XML file (default, safe)
   - rss_url: real RSS feed URL (requires --allow-network)
 - Per-source status: success / failed / disabled / empty / skipped

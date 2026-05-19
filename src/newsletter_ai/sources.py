@@ -56,6 +56,8 @@ def validate_source(source: Dict[str, Any]) -> List[str]:
         errors.append("missing_fixture_path")
     if source_type == "rss_url" and not source.get("url"):
         errors.append("missing_url")
+    if source_type == "rss_replay" and not source.get("fixture_path"):
+        errors.append("missing_fixture_path")
 
     return errors
 
@@ -151,6 +153,38 @@ def ingest_sources_with_report(
 
         try:
             if source_type == "rss_fixture":
+                fixture_path = source.get("fixture_path")
+                if not fixture_path:
+                    status = "failed"
+                    errors.append("missing_fixture_path")
+                else:
+                    full_path = base_dir / fixture_path
+                    if not full_path.exists():
+                        status = "failed"
+                        errors.append(f"fixture_not_found: {full_path}")
+                    else:
+                        raw_items = parse_rss_file(full_path)
+                        if not raw_items:
+                            status = "empty"
+                            warnings.append("no_items_parsed")
+                        else:
+                            for raw in raw_items:
+                                raw["source_id"] = source_id
+                                raw["source_name"] = source_name
+                                if topic_hints and not raw.get("topic_tags"):
+                                    raw["topic_tags"] = topic_hints
+                                if style_hints and not raw.get("style_tags"):
+                                    raw["style_tags"] = style_hints
+
+                            normalized_items = normalize_items(raw_items, source_hint=source_id)
+                            if not normalized_items:
+                                status = "empty"
+                                warnings.append("all_items_filtered_during_normalization")
+                            else:
+                                all_items.extend(normalized_items)
+                                success_count += 1
+
+            elif source_type == "rss_replay":
                 fixture_path = source.get("fixture_path")
                 if not fixture_path:
                     status = "failed"

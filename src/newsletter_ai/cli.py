@@ -56,11 +56,14 @@ def main():
     quality_p = subparsers.add_parser("quality", help="Quality report commands")
     quality_p.add_argument("subcmd", choices=["show", "json", "explain", "sources", "duplicates", "sections"])
 
-    # sources (v0.3.9, v0.3.11: added "report"; v0.3.12: added "fetch")
+    # sources (v0.3.9, v0.3.11: added "report"; v0.3.12: added "fetch"; v0.3.14: added "capture-replay")
     sources_p = subparsers.add_parser("sources", help="Source registry commands")
     sources_p.add_argument("subcmd", choices=["list", "validate", "ingest-fixtures", "report", "fetch"])
     sources_p.add_argument("--registry", type=Path, default=None, help="Path to source registry JSON")
     sources_p.add_argument("--allow-network", action="store_true", help="Allow real network requests for rss_url sources")
+    sources_p.add_argument("--capture-replay", action="store_true", help="Save successful rss_url fetches as replay fixtures (requires --allow-network)")
+    sources_p.add_argument("--replay-dir", type=Path, default=None, help="Directory for replay fixtures (default: data/fixtures/replay)")
+    sources_p.add_argument("--source-id", default=None, help="Only process the specified source_id")
 
     args = parser.parse_args()
     cfg = load_config()
@@ -244,14 +247,58 @@ def main():
 
         elif args.subcmd == "fetch":
             sources = load_source_registry(registry_path)
+            capture_replay = getattr(args, "capture_replay", False)
+            replay_dir = getattr(args, "replay_dir", None) or (Path(__file__).parent.parent.parent / "data" / "fixtures" / "replay")
+            source_id_filter = getattr(args, "source_id", None)
+
+            if capture_replay and not allow_network:
+                print("Error: --capture-replay requires --allow-network")
+                sys.exit(1)
+
             if not allow_network:
                 print("Note: --allow-network not set. rss_url sources will be skipped (network_disabled).")
                 print("Use --allow-network to perform real network requests.\n")
+
+            # Filter to specific source if requested
+            if source_id_filter:
+                sources = [s for s in sources if s.get("source_id") == source_id_filter]
+                if not sources:
+                    print(f"Error: source_id '{source_id_filter}' not found in registry")
+                    sys.exit(1)
+
             result = ingest_sources_with_report(sources, allow_network=allow_network)
             items = result["items"]
             report = result["report"]
+            captured_files = []
+
+            # Capture replay fixtures for successful rss_url sources
+            if capture_replay and allow_network:
+                from .replay import save_rss_replay_fixture, build_replay_metadata
+                from .rss import parse_rss_xml
+                from .fetch import fetch_rss_url_source
+
+                for source in sources:
+                    if source.get("type") != "rss_url" or not source.get("enabled", True):
+                        continue
+                    source_id = source.get("source_id", "unknown")
+                    fetch_result = fetch_rss_url_source(source, allow_network=True)
+                    if fetch_result.ok:
+                        raw_items = parse_rss_xml(fetch_result.text)
+                        meta = build_replay_metadata(source, fetch_result, item_count=len(raw_items))
+                        xml_path = save_rss_replay_fixture(
+                            source_id=source_id,
+                            xml_text=fetch_result.text,
+                            output_dir=replay_dir,
+                            metadata=meta,
+                        )
+                        captured_files.append(str(xml_path))
+
             print(f"Fetched {len(items)} items from {report['source_count_enabled']} enabled sources.")
             print(f"Total: {report['source_count_total']} | Enabled: {report['source_count_enabled']} | Disabled: {report['source_count_disabled']} | Success: {report['source_count_success']} | Failed: {report['source_count_failed']} | Empty: {report['source_count_empty']} | SkippedNetwork: {report.get('source_count_skipped_network', 0)}")
+            if captured_files:
+                print(f"Captured {len(captured_files)} replay fixtures:")
+                for cf in captured_files:
+                    print(f"  - {cf}")
             print("\nPer-source status:")
             for s in report["sources"]:
                 status_icon = "✓" if s["status"] == "success" else "✗" if s["status"] == "failed" else "○" if s["status"] == "skipped" else "-"
