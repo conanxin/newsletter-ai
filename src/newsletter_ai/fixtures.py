@@ -1,30 +1,20 @@
-"""Fixture loader for dry-run and E2E testing.
+"""Fixture loader for dry-run and E2E testing (v0.3.7).
 
-This module provides a unified way to load fixture items for
-newsletter-ai daily --dry-run and regression tests.
+Now integrated with the normalization layer.
 """
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+
+from .normalize import normalize_items
 
 
 DEFAULT_DRY_RUN_FIXTURE = Path(__file__).parent.parent.parent / "data" / "fixtures" / "dry_run_items.json"
 
 
 def load_fixture_items_from_path(path: Path) -> List[Dict[str, Any]]:
-    """Load items from a JSON file.
-
-    Args:
-        path: Path to the JSON fixture file.
-
-    Returns:
-        List of item dictionaries.
-
-    Raises:
-        FileNotFoundError: If the fixture file does not exist.
-        json.JSONDecodeError: If the file is not valid JSON.
-    """
+    """Load raw items from a JSON file."""
     if not path.exists():
         raise FileNotFoundError(f"Fixture file not found: {path}")
 
@@ -38,23 +28,15 @@ def load_fixture_items_from_path(path: Path) -> List[Dict[str, Any]]:
 
 
 def load_dry_run_items() -> List[Dict[str, Any]]:
-    """Load the default dry-run fixture items.
+    """Load and normalize the default dry-run fixture items.
 
     This is the recommended source for `newsletter-ai daily --dry-run`.
+    All items are passed through normalize_items() to ensure schema consistency.
     """
-    return load_fixture_items_from_path(DEFAULT_DRY_RUN_FIXTURE)
+    raw_items = load_fixture_items_from_path(DEFAULT_DRY_RUN_FIXTURE)
+    return normalize_items(raw_items, source_hint="dry_run_fixture")
 
 
 def normalize_fixture_item(item: Dict[str, Any]) -> Dict[str, Any]:
-    """Ensure fixture item has all required fields with safe defaults."""
-    normalized = {
-        "id": item.get("id") or item.get("item_id") or f"item-{hash(str(item)) % 100000}",
-        "source": item.get("source", "unknown"),
-        "title": item.get("title", "Untitled"),
-        "url": item.get("url", ""),
-        "summary": item.get("summary", item.get("description", "")),
-        "topic_tags": item.get("topic_tags", []) or [],
-        "style_tags": item.get("style_tags", []) or [],
-        "base_score": float(item.get("base_score", 0.5)),
-    }
-    return normalized
+    """Legacy helper - now delegates to normalize_items."""
+    return normalize_items([item])[0]

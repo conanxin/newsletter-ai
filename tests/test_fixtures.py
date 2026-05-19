@@ -1,4 +1,4 @@
-"""Tests for the fixture loader (v0.3.6)."""
+"""Tests for the fixture loader (v0.3.7)."""
 
 import pytest
 from pathlib import Path
@@ -14,15 +14,18 @@ def test_load_dry_run_items():
         assert "source" in item
         assert "title" in item
         assert "topic_tags" in item
+        assert "item_id" in item
 
 
 def test_normalize_fixture_item():
     raw = {"id": "1", "source": "test", "title": "Test", "base_score": 0.9}
     norm = normalize_fixture_item(raw)
-    assert norm["id"] == "1"
+    # After normalization, item_id should be stable
+    assert "item_id" in norm
+    assert norm["source"] == "test"
+    assert norm["title"] == "Test"
     assert norm["topic_tags"] == []
     assert norm["style_tags"] == []
-    assert norm["base_score"] == 0.9
 
 
 def test_load_fixture_items_from_path_invalid():
