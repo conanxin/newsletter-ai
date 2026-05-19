@@ -84,18 +84,20 @@
 - newsletter-ai quality duplicates
 - newsletter-ai quality sections
 
-## Replay (v0.3.15 governance, v0.3.16 smoke fixture)
+## Replay (v0.3.15 governance, v0.3.16 smoke fixture, v0.3.17 regression)
 - newsletter-ai replay list
 - newsletter-ai replay list --replay-dir data/fixtures/replay
 - newsletter-ai replay inspect data/fixtures/replay/rss_xxx.xml
 - newsletter-ai replay validate
 - newsletter-ai replay promote data/fixtures/replay/rss_xxx.xml --source-id my-source --name "My Source"
+- newsletter-ai replay promote data/fixtures/replay/rss_xxx.xml --source-id my-source --name "My Source" --as-json
 
 ### Replay commands
 - `list` — show all replay fixtures with source_id, item_count, status, fetched_at
 - `inspect` — display metadata + first 3 item titles
 - `validate` — integrity check all replay pairs (sha256, item_count, parseability)
 - `promote` — output proposed `rss_replay` registry entry (dry-run only, does not write registry)
+  - `--as-json` outputs pure JSON for piping / redirecting
 
 ### Sanitization
 - `sanitize_replay_xml()` strips tracking query params: utm_*, fbclid, gclid, mc_*
@@ -109,6 +111,16 @@
 - 20 items, HTTP 200, no token/cookie/auth
 - Used for offline replay / regression, not real-time HN
 - Capture: `sources fetch --allow-network --capture-replay`
+
+### Offline replay registry (v0.3.17)
+- `data/fixtures/replay_source_registry.json` — dedicated offline replay registry
+- Contains `rss_replay` source pointing at captured HN fixture
+- Fully offline, no network required
+- Recommended for regression testing:
+  - `newsletter-ai daily --dry-run --source-registry data/fixtures/replay_source_registry.json`
+  - `newsletter-ai items show`
+  - `newsletter-ai feedback like 1 --dry-run`
+  - `newsletter-ai quality sections`
 
 ## Feedback (v0.3.13 hardened)
 - newsletter-ai feedback "like 1" --dry-run

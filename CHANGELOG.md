@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.3.17 (2026-05)
+- Real Replay Fixture Regression + Registry Integration
+- New offline replay registry:
+  - `data/fixtures/replay_source_registry.json` — uses captured HN frontpage replay fixture
+  - Fully offline, no network required, no token/cookie/auth
+- New E2E regression test: `tests/test_e2e_real_replay_flow.py` (14 tests)
+  - Replay fixture validation (pair exists, sha256 match, item_count > 0)
+  - Replay registry ingestion (offline, items have required fields)
+  - Daily pipeline with replay registry (snapshot, sectioned digest)
+  - Feedback regression (like/save on replay items)
+  - Quality regression (report structure)
+  - No assertions on specific HN titles (time-sensitive content)
+- Enhanced `replay promote`:
+  - `--as-json` flag outputs pure JSON registry entry for piping
+  - Reads topic_hints/style_hints from metadata when available
+- Verified offline command chain:
+  - `replay validate` → PASS
+  - `daily --dry-run --source-registry data/fixtures/replay_source_registry.json` → 20 items
+  - `items show` → real replay items visible
+  - `feedback like 1 --dry-run` → parses replay item
+  - `quality sections/sources/duplicates` → structure valid
+- Default source_registry and daily behavior unchanged
+
 ## v0.3.16 (2026-05)
 - Real RSS Source Smoke Run + First Replay Fixture
 - Performed controlled real network fetch from https://hnrss.org/frontpage

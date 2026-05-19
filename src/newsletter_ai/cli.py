@@ -72,6 +72,7 @@ def main():
     replay_p.add_argument("--replay-dir", type=Path, default=None, help="Directory for replay fixtures (default: data/fixtures/replay)")
     replay_p.add_argument("--source-id", default=None, help="Source ID for promote")
     replay_p.add_argument("--name", default=None, help="Source name for promote")
+    replay_p.add_argument("--as-json", action="store_true", help="Output pure JSON for promote (v0.3.17)")
 
     args = parser.parse_args()
     cfg = load_config()
@@ -537,6 +538,7 @@ def main():
             xml_path = getattr(args, "path", None)
             source_id = getattr(args, "source_id", None)
             name = getattr(args, "name", None)
+            as_json = getattr(args, "as_json", False)
             if not xml_path or not source_id or not name:
                 print("Error: promote requires xml_path, --source-id, and --name")
                 print("Usage: newsletter-ai replay promote data/fixtures/replay/rss_xxx.xml --source-id my-source --name 'My Source'")
@@ -547,19 +549,33 @@ def main():
                 print(f"Error: XML not found: {xml_path}")
                 sys.exit(1)
 
+            # Load metadata for topic/style hints if available
+            topic_hints = []
+            style_hints = []
+            if meta_path.exists():
+                try:
+                    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                    topic_hints = meta.get("topic_hints", [])
+                    style_hints = meta.get("style_hints", [])
+                except Exception:
+                    pass
+
             entry = {
                 "source_id": source_id,
                 "name": name,
                 "type": "rss_replay",
                 "enabled": True,
                 "fixture_path": str(xml_path),
-                "topic_hints": [],
-                "style_hints": [],
+                "topic_hints": topic_hints,
+                "style_hints": style_hints,
                 "quality_weight": 1.0,
             }
-            print("Proposed registry entry (dry-run, not written):")
-            print(json.dumps(entry, indent=2, ensure_ascii=False))
-            print("\nTo add to registry, append this to data/fixtures/source_registry.json")
+            if as_json:
+                print(json.dumps(entry, indent=2, ensure_ascii=False))
+            else:
+                print("Proposed registry entry (dry-run, not written):")
+                print(json.dumps(entry, indent=2, ensure_ascii=False))
+                print("\nTo add to registry, append this to data/fixtures/source_registry.json")
             sys.exit(0)
 
     else:
