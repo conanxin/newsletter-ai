@@ -93,3 +93,61 @@ class TestCliDashboard:
         if dashboard_path.exists():
             content = dashboard_path.read_text(encoding="utf-8")
             assert "Hacker News" in content or "tech" in content
+
+    def test_dashboard_export_command(self, tmp_path):
+        """Export dashboard bundle via CLI."""
+        # Run daily dry-run first
+        daily_result = subprocess.run(
+            [sys.executable, "-m", "newsletter_ai.cli", "daily", "--dry-run"],
+            capture_output=True,
+            text=True,
+        )
+        assert daily_result.returncode == 0, daily_result.stderr
+
+        export_result = subprocess.run(
+            [sys.executable, "-m", "newsletter_ai.cli", "dashboard", "export"],
+            capture_output=True,
+            text=True,
+        )
+        assert export_result.returncode == 0, export_result.stderr
+        assert "Dashboard bundle exported:" in export_result.stdout
+        assert "index.html" in export_result.stdout
+        assert "metadata.json" in export_result.stdout
+        assert "README.txt" in export_result.stdout
+
+        # Verify files exist
+        dist_path = Path("dist/dashboard")
+        if dist_path.exists():
+            assert (dist_path / "index.html").exists()
+            assert (dist_path / "metadata.json").exists()
+            assert (dist_path / "README.txt").exists()
+
+    def test_dashboard_export_custom_out(self, tmp_path):
+        """Export dashboard bundle to custom directory."""
+        # Run daily dry-run first
+        daily_result = subprocess.run(
+            [sys.executable, "-m", "newsletter_ai.cli", "daily", "--dry-run"],
+            capture_output=True,
+            text=True,
+        )
+        assert daily_result.returncode == 0, daily_result.stderr
+
+        custom_dir = tmp_path / "custom-export"
+        export_result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "newsletter_ai.cli",
+                "dashboard",
+                "export",
+                "--out",
+                str(custom_dir),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert export_result.returncode == 0, export_result.stderr
+        assert "Dashboard bundle exported:" in export_result.stdout
+        assert (custom_dir / "index.html").exists()
+        assert (custom_dir / "metadata.json").exists()
+        assert (custom_dir / "README.txt").exists()
