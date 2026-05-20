@@ -1,0 +1,13 @@
+{
+  "source_id": "hnrss-frontpage",
+  "name": "Hacker News Frontpage",
+  "url": "https://hnrss.org/frontpage",
+  "fetched_at": "2026-05-20T01:57:10.158027Z",
+  "status_code": 200,
+  "item_count": 20,
+  "sha256": "93233006363f651cc10820f6217987e0f8b00a4b26249205366d260cc5ca9af2",
+  "generated_by": "newsletter-ai/replay v0.3.15",
+  "version": "1",
+  "sanitized": true,
+  "stripped_tracking_params_count": 0
+}

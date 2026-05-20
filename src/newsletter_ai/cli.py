@@ -303,6 +303,7 @@ def main():
                             source, fetch_result, item_count=len(raw_items),
                             sanitized=True,
                             stripped_tracking_params_count=stripped_count,
+                            xml_text=sanitized_xml,
                         )
                         xml_path = save_rss_replay_fixture(
                             source_id=source_id,
