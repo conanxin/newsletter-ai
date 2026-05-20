@@ -79,9 +79,12 @@ def main():
     runs_p.add_argument("subcmd", choices=["list", "latest", "inspect"])
     runs_p.add_argument("run_id", nargs="?", help="Run ID for inspect")
 
-    # dashboard (v0.4.1: static dashboard)
+    # dashboard (v0.4.1: static dashboard; v0.4.3: export bundle)
     dashboard_p = subparsers.add_parser("dashboard", help="Static dashboard commands")
-    dashboard_p.add_argument("subcmd", choices=["build", "show"])
+    dashboard_p.add_argument("subcmd", choices=["build", "show", "export"])
+    dashboard_p.add_argument("--out", type=Path, default=None, help="Export output directory (default: dist/dashboard)")
+    dashboard_p.add_argument("--include-metadata", action="store_true", default=True, help="Include metadata.json in export")
+    dashboard_p.add_argument("--public-title", default=None, help="Override dashboard title in export")
 
     args = parser.parse_args()
     cfg = load_config()
@@ -634,7 +637,7 @@ def main():
             sys.exit(0)
 
     elif args.command == "dashboard":
-        from .dashboard import build_dashboard, load_dashboard_data, DEFAULT_OUTPUT_DIR
+        from .dashboard import build_dashboard, load_dashboard_data, DEFAULT_OUTPUT_DIR, export_dashboard_bundle
 
         if args.subcmd == "build":
             data = load_dashboard_data()
@@ -653,6 +656,26 @@ def main():
             else:
                 print("Dashboard not found. Run: newsletter-ai dashboard build")
                 sys.exit(1)
+            sys.exit(0)
+
+        elif args.subcmd == "export":
+            data = load_dashboard_data()
+            if not data.get("has_latest_run"):
+                print("No latest run data found. Run: newsletter-ai daily --dry-run")
+                sys.exit(1)
+            out_dir = getattr(args, "out", None) or Path("dist/dashboard")
+            include_metadata = getattr(args, "include_metadata", True)
+            public_title = getattr(args, "public_title", None)
+            path = export_dashboard_bundle(
+                out_dir=out_dir,
+                include_metadata=include_metadata,
+                public_title=public_title,
+            )
+            print(f"Dashboard bundle exported: {path}")
+            print(f"  index.html")
+            if include_metadata:
+                print(f"  metadata.json")
+            print(f"  README.txt")
             sys.exit(0)
 
     else:

@@ -4,6 +4,22 @@
 - make release-check
 - make validate
 
+## v0.4.3 Dashboard Export Bundle Commands
+- `newsletter-ai dashboard export` — exports deployable bundle to `dist/dashboard/`
+- `newsletter-ai dashboard export --out /var/www/newsletter-ai/dashboard` — custom output directory
+- `newsletter-ai dashboard export --public-title "My Dashboard"` — custom page title
+- Generates:
+  - `index.html` — static dashboard page (self-contained, no CDN)
+- `metadata.json` — run metadata (generated_at, run_id, item_count, source_count, etc.)
+  - 使用相对路径，不包含本地绝对路径或 secrets
+- `README.txt` — deployment notes and safety warnings
+- Features:
+  - Reuses existing dashboard build logic for consistency
+  - Does NOT copy secrets, runtime state, or local paths
+  - No network requests, no Telegram messages
+  - Graceful error if no run data: `Run newsletter-ai daily --dry-run first`
+- `dist/dashboard/` is runtime artifact — do not commit
+
 ## v0.4.1 Static Dashboard Commands
 - `newsletter-ai dashboard build` — generates `output/dashboard/index.html`
 - `newsletter-ai dashboard show` — shows dashboard path

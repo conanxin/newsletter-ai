@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.4.3 Dashboard Export Bundle (2026-05)
+- 新增 Dashboard 静态发布包导出能力
+- 新增函数 `export_dashboard_bundle()`：
+  - 生成 `index.html` — 可直接部署的静态页面
+  - 生成 `metadata.json` — 运行元数据（无 secrets）
+  - 生成 `README.txt` — 部署说明与安全提示
+- 新增 CLI 命令：
+  - `newsletter-ai dashboard export` — 默认导出到 `dist/dashboard/`
+  - `newsletter-ai dashboard export --out <dir>` — 自定义输出目录
+  - `newsletter-ai dashboard export --public-title "..."` — 自定义页面标题
+- 特性：
+  - 复用现有 dashboard build 逻辑，确保一致性
+  - 不复制 secrets、runtime state、本地路径
+  - metadata 使用相对路径，适合迁移和静态部署
+  - 不联网、不发送 Telegram
+  - 缺少数据时提示：`Run newsletter-ai daily --dry-run first`
+- 测试：
+  - `tests/test_dashboard_export.py` — 6 个测试覆盖导出文件、metadata、README、自定义目录、缺失数据、无 secret
+  - `tests/test_cli_dashboard.py` — 新增 2 个测试覆盖 CLI export 和自定义 --out
+- `dist/dashboard/` 是运行产物，已加入 `.gitignore`，不提交到 Git
+
 ## v0.4.1 Static Dashboard (2026-05)
 - 新增本地静态 Dashboard 生成器
 - 新增模块 `src/newsletter_ai/dashboard.py`：

@@ -26,5 +26,8 @@ data/state/latest_*.json
 *.egg-info/
 src/newsletter_ai.egg-info/
 
+# deploy artifacts
+dist/dashboard/
+
 # backup directories
 .backup*/

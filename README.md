@@ -29,6 +29,7 @@ newsletter-ai 是一个本地优先、安全默认、可回归测试的个人 ne
 | run artifact index | 已支持 | runs list/latest/inspect |
 | safe publisher / Telegram dry-run | 已支持 | 默认 DryRunPublisher，真实发送需额外配置 |
 | static dashboard | 已支持 | 本地 HTML 预览，不联网、不发送 Telegram |
+| dashboard export bundle | 已支持 | 导出可部署静态包（GitHub Pages / Nginx / Cloudflare Pages）|
 
 ## 3. 核心流程
 
@@ -301,13 +302,26 @@ newsletter-ai dashboard build
 
 # 查看 Dashboard 路径
 newsletter-ai dashboard show
+
+# 导出可部署静态包（默认 dist/dashboard/）
+newsletter-ai dashboard export
+
+# 导出到自定义目录
+newsletter-ai dashboard export --out /var/www/newsletter-ai/dashboard
+
+# 自定义标题
+newsletter-ai dashboard export --public-title "My Newsletter Dashboard"
 ```
 
 **说明：**
 - Dashboard 读取 latest snapshot / quality / runs 数据；
 - 默认输出到 `output/dashboard/index.html`；
+  - `export` 生成 `index.html` + `metadata.json` + `README.txt`；
+  - metadata 使用相对路径（如 `output/quality/latest_quality.json`），适合迁移和静态部署；
+  - 导出包不包含本地绝对路径或 secrets；
+- 导出包可直接部署到 GitHub Pages、Nginx、Cloudflare Pages；
 - 不联网、不发送 Telegram；
-- `output/dashboard/` 是运行产物，不提交到 Git。
+- `output/dashboard/` 和 `dist/dashboard/` 是运行产物，不提交到 Git。
 
 ### 验证
 ```bash
@@ -321,8 +335,9 @@ make validate
 - v0.3 已合并到 main；
 - v0.4.0 Real Source Trial 已合并到 main（HN replay fixture）；
 - v0.4.1 Static Dashboard 已合并到 main（本地 HTML 预览）；
+- v0.4.3 Dashboard Export Bundle 开发中（静态发布包导出，支持 GitHub Pages / Nginx / Cloudflare Pages；metadata 使用相对路径，适合迁移和静态部署）；
 - 当前 release gate 为 `pytest` / `make release-check` / `make validate`；
-- 测试数以本地运行为准，当前审计时为 229 passed，后续新增测试以本地输出为准。
+- 测试数以本地运行为准，当前审计时为 237 passed，后续新增测试以本地输出为准。
 
 ## 15. 后续计划
 
