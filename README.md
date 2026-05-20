@@ -28,6 +28,7 @@ newsletter-ai 是一个本地优先、安全默认、可回归测试的个人 ne
 | replay governance | 已支持 | list / inspect / validate / promote |
 | run artifact index | 已支持 | runs list/latest/inspect |
 | safe publisher / Telegram dry-run | 已支持 | 默认 DryRunPublisher，真实发送需额外配置 |
+| static dashboard | 已支持 | 本地 HTML 预览，不联网、不发送 Telegram |
 
 ## 3. 核心流程
 
@@ -293,6 +294,21 @@ newsletter-ai runs latest
 newsletter-ai runs inspect <run_id>
 ```
 
+### Dashboard
+```bash
+# 生成本地静态 Dashboard HTML
+newsletter-ai dashboard build
+
+# 查看 Dashboard 路径
+newsletter-ai dashboard show
+```
+
+**说明：**
+- Dashboard 读取 latest snapshot / quality / runs 数据；
+- 默认输出到 `output/dashboard/index.html`；
+- 不联网、不发送 Telegram；
+- `output/dashboard/` 是运行产物，不提交到 Git。
+
 ### 验证
 ```bash
 python -m pytest
@@ -303,8 +319,10 @@ make validate
 ## 14. 当前状态
 
 - v0.3 已合并到 main；
+- v0.4.0 Real Source Trial 已合并到 main（HN replay fixture）；
+- v0.4.1 Static Dashboard 已合并到 main（本地 HTML 预览）；
 - 当前 release gate 为 `pytest` / `make release-check` / `make validate`；
-- 测试数以本地运行为准，当前审计时为 219 passed，后续新增测试以本地输出为准。
+- 测试数以本地运行为准，当前审计时为 229 passed，后续新增测试以本地输出为准。
 
 ## 15. 后续计划
 

@@ -79,6 +79,10 @@ def main():
     runs_p.add_argument("subcmd", choices=["list", "latest", "inspect"])
     runs_p.add_argument("run_id", nargs="?", help="Run ID for inspect")
 
+    # dashboard (v0.4.1: static dashboard)
+    dashboard_p = subparsers.add_parser("dashboard", help="Static dashboard commands")
+    dashboard_p.add_argument("subcmd", choices=["build", "show"])
+
     args = parser.parse_args()
     cfg = load_config()
 
@@ -626,6 +630,28 @@ def main():
                 print(json.dumps(record, indent=2, ensure_ascii=False))
             except RunIndexError as e:
                 print(f"Error: {e}")
+                sys.exit(1)
+            sys.exit(0)
+
+    elif args.command == "dashboard":
+        from .dashboard import build_dashboard, load_dashboard_data, DEFAULT_OUTPUT_DIR
+
+        if args.subcmd == "build":
+            data = load_dashboard_data()
+            if not data.get("has_latest_run"):
+                print("No latest run data found. Run: newsletter-ai daily --dry-run")
+                sys.exit(1)
+            path = build_dashboard()
+            print(f"Dashboard built: {path}")
+            sys.exit(0)
+
+        elif args.subcmd == "show":
+            index_path = DEFAULT_OUTPUT_DIR / "index.html"
+            if index_path.exists():
+                print(f"Dashboard: {index_path}")
+                print(f"Open in browser: file://{index_path}")
+            else:
+                print("Dashboard not found. Run: newsletter-ai dashboard build")
                 sys.exit(1)
             sys.exit(0)
 
