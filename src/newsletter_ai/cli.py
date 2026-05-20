@@ -79,9 +79,9 @@ def main():
     runs_p.add_argument("subcmd", choices=["list", "latest", "inspect"])
     runs_p.add_argument("run_id", nargs="?", help="Run ID for inspect")
 
-    # dashboard (v0.4.1: static dashboard; v0.4.3: export bundle)
+    # dashboard (v0.4.1: static dashboard; v0.4.3: export bundle; v0.4.4: export-pages)
     dashboard_p = subparsers.add_parser("dashboard", help="Static dashboard commands")
-    dashboard_p.add_argument("subcmd", choices=["build", "show", "export"])
+    dashboard_p.add_argument("subcmd", choices=["build", "show", "export", "export-pages"])
     dashboard_p.add_argument("--out", type=Path, default=None, help="Export output directory (default: dist/dashboard)")
     dashboard_p.add_argument("--include-metadata", action="store_true", default=True, help="Include metadata.json in export")
     dashboard_p.add_argument("--public-title", default=None, help="Override dashboard title in export")
@@ -676,6 +676,32 @@ def main():
             if include_metadata:
                 print(f"  metadata.json")
             print(f"  README.txt")
+            sys.exit(0)
+
+        elif args.subcmd == "export-pages":
+            data = load_dashboard_data()
+            if not data.get("has_latest_run"):
+                print("No latest run data found. Run: newsletter-ai daily --dry-run")
+                sys.exit(1)
+            out_dir = getattr(args, "out", None) or Path("docs/dashboard")
+            include_metadata = getattr(args, "include_metadata", True)
+            public_title = getattr(args, "public_title", None) or "newsletter-ai Dashboard"
+            path = export_dashboard_bundle(
+                out_dir=out_dir,
+                include_metadata=include_metadata,
+                public_title=public_title,
+            )
+            print(f"GitHub Pages candidate written to {path / 'index.html'}")
+            print(f"  Files:")
+            print(f"    index.html")
+            if include_metadata:
+                print(f"    metadata.json")
+            print(f"    README.txt")
+            print(f"\nTo publish:")
+            print(f"  1. Commit docs/dashboard/ to main")
+            print(f"  2. Go to Repository Settings → Pages")
+            print(f"  3. Source: Deploy from a branch → main → /docs")
+            print(f"  4. Visit: https://<user>.github.io/<repo>/dashboard/")
             sys.exit(0)
 
     else:

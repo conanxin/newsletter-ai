@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.4.4 GitHub Pages Dashboard (2026-05)
+- 新增 GitHub Pages Dashboard 发布草案
+- 新增 CLI 命令：
+  - `newsletter-ai dashboard export-pages` — 默认导出到 `docs/dashboard/`
+  - `newsletter-ai dashboard export-pages --out <dir>` — 自定义输出目录
+  - `newsletter-ai dashboard export-pages --public-title "..."` — 自定义页面标题
+- 特性：
+  - 复用现有 `export_dashboard_bundle()` 逻辑
+  - 默认输出到 `docs/dashboard/`，与 GitHub Pages `/docs` 目录兼容
+  - 自动打印 GitHub Pages 发布步骤提示
+  - 只使用公开 replay fixture，不泄露私人数据
+  - 不联网、不发送 Telegram
+- 安全：
+  - `docs/dashboard/` 可以提交到 Git，但内容应来自公开 replay fixture
+  - 不提交 output/、data/state/、.env、token、auth
+  - metadata 使用相对路径，无本地绝对路径
+- 文档：
+  - README.md 新增 GitHub Pages 发布说明
+  - docs/COMMAND_CARD.md 新增 export-pages 命令参考
+
 ## v0.4.3 Dashboard Export Bundle (2026-05)
 - 新增 Dashboard 静态发布包导出能力
 - 新增函数 `export_dashboard_bundle()`：

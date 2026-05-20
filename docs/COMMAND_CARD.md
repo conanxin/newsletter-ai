@@ -4,6 +4,31 @@
 - make release-check
 - make validate
 
+## v0.4.4 GitHub Pages Dashboard Commands
+- `newsletter-ai dashboard export-pages` — exports deployable bundle to `docs/dashboard/` for GitHub Pages
+- `newsletter-ai dashboard export-pages --out <dir>` — custom output directory
+- `newsletter-ai dashboard export-pages --public-title "My Dashboard"` — custom page title
+- Generates:
+  - `index.html` — static dashboard page (self-contained, no CDN)
+  - `metadata.json` — run metadata (generated_at, run_id, item_count, source_count, etc.)
+    - 使用相对路径，不包含本地绝对路径或 secrets
+  - `README.txt` — deployment notes and safety warnings
+- Features:
+  - Reuses existing dashboard build logic for consistency
+  - Default output `docs/dashboard/` compatible with GitHub Pages `/docs` folder
+  - Prints GitHub Pages publishing steps after export
+  - Only uses public replay fixture data — no private sources or feedback
+  - Does NOT copy secrets, runtime state, or local paths
+  - No network requests, no Telegram messages
+  - Graceful error if no run data: `Run newsletter-ai daily --dry-run first`
+- Security:
+  - `docs/dashboard/` can be committed, but content should come from public replay fixtures
+  - Do NOT commit output/, data/state/, .env, token, auth files
+- GitHub Pages setup:
+  1. Commit `docs/dashboard/` to main
+  2. Repository Settings → Pages → Source: Deploy from a branch → main → /docs
+  3. Visit: `https://<user>.github.io/<repo>/dashboard/`
+
 ## v0.4.3 Dashboard Export Bundle Commands
 - `newsletter-ai dashboard export` — exports deployable bundle to `dist/dashboard/`
 - `newsletter-ai dashboard export --out /var/www/newsletter-ai/dashboard` — custom output directory

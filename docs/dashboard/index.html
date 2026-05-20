@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>newsletter-ai Dashboard</title>
+<style>
+    :root { --bg:#f8fafc; --surface:#ffffff; --text:#0f172a; --muted:#64748b; --accent:#0ea5e9; --accent-soft:#e0f2fe; --border:#e2e8f0; --success:#10b981; --success-soft:#d1fae5; --warning:#f59e0b; --warning-soft:#fef3c7; --danger:#ef4444; --danger-soft:#fee2e2; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.6; }
+    .container { max-width:1200px; margin:0 auto; padding:24px; }
+    .nav { position:sticky; top:0; background:rgba(248,250,252,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--border); padding:12px 0; margin-bottom:24px; z-index:10; display:flex; gap:16px; flex-wrap:wrap; }
+    .nav a { color:var(--muted); text-decoration:none; font-size:0.875rem; font-weight:500; padding:4px 8px; border-radius:6px; transition:all 0.15s; }
+    .nav a:hover { color:var(--accent); background:var(--accent-soft); }
+    .hero { background:linear-gradient(135deg, var(--surface) 0%, var(--accent-soft) 100%); border:1px solid var(--border); border-radius:16px; padding:28px; margin-bottom:24px; }
+    .hero-title { font-size:1.75rem; font-weight:700; margin-bottom:4px; }
+    .hero-meta { color:var(--muted); font-size:0.875rem; margin-bottom:20px; }
+    .hero-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)); gap:16px; margin-bottom:16px; }
+    .hero-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; text-align:center; }
+    .hero-value { font-size:1.5rem; font-weight:700; color:var(--accent); }
+    .hero-label { font-size:0.75rem; color:var(--muted); margin-top:4px; }
+    .status-success { color:var(--success); }
+    .status-warning { color:var(--warning); }
+    .hero-detail { display:flex; gap:16px; flex-wrap:wrap; font-size:0.8rem; color:var(--muted); }
+    .hero-detail code { background:var(--surface); padding:2px 6px; border-radius:4px; border:1px solid var(--border); }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:20px; }
+    .card h2 { margin:0 0 16px; font-size:1.125rem; color:var(--text); display:flex; align-items:center; gap:8px; }
+    .card h2::before { content:""; display:inline-block; width:4px; height:20px; background:var(--accent); border-radius:2px; }
+    .subcard { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:16px; }
+    .subcard h3 { margin:0 0 12px; font-size:1rem; color:var(--text); }
+    .grid-2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; }
+    .grid-4 { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:16px; }
+    .stat-card { text-align:center; padding:16px; border-radius:12px; }
+    .stat-total { background:var(--accent-soft); }
+    .stat-success { background:var(--success-soft); }
+    .stat-failed { background:var(--danger-soft); }
+    .stat-skipped { background:var(--warning-soft); }
+    .stat-value { font-size:1.5rem; font-weight:700; color:var(--text); }
+    .stat-label { font-size:0.75rem; color:var(--muted); margin-top:4px; }
+    .big-metric { text-align:center; padding:20px; }
+    .big-value { font-size:2.5rem; font-weight:700; color:var(--accent); }
+    .big-label { font-size:0.875rem; color:var(--muted); }
+    .mini-table { width:100%; border-collapse:collapse; font-size:0.875rem; }
+    .mini-table th, .mini-table td { padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); }
+    .mini-table th { color:var(--muted); font-weight:500; background:var(--bg); }
+    .mini-table tr:hover { background:var(--bg); }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:0.75rem; font-weight:600; }
+    .badge-success { background:var(--success-soft); color:var(--success); }
+    .badge-warning { background:var(--warning-soft); color:var(--warning); }
+    .badge-danger { background:var(--danger-soft); color:var(--danger); }
+    .badge-muted { background:var(--bg); color:var(--muted); }
+    .section { margin-bottom:20px; }
+    .section h3 { margin:0 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border); font-size:1rem; display:flex; align-items:center; gap:8px; }
+    .section-count { color:var(--muted); font-size:0.875rem; font-weight:400; }
+    .item { padding:16px; border:1px solid var(--border); border-radius:12px; margin-bottom:12px; background:var(--surface); transition:box-shadow 0.15s; }
+    .item:hover { box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+    .item-header { display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+    .item-index { background:var(--accent); color:#fff; font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:6px; }
+    .item-title { font-weight:600; flex:1; font-size:0.95rem; }
+    .item-score { color:var(--success); font-weight:600; font-size:0.875rem; }
+    .item-meta { font-size:0.8rem; color:var(--muted); margin-bottom:4px; }
+    .item-tags { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:6px; }
+    .tag { background:var(--accent-soft); color:var(--accent); font-size:0.75rem; padding:2px 8px; border-radius:999px; font-weight:500; }
+    .item-summary { font-size:0.875rem; color:var(--text); margin-bottom:8px; line-height:1.6; }
+    .item-url { font-size:0.8rem; }
+    .item-url a { color:var(--accent); text-decoration:none; word-break:break-all; }
+    .item-url a:hover { text-decoration:underline; }
+    .more-hint { text-align:center; padding:12px; color:var(--muted); font-size:0.875rem; background:var(--bg); border-radius:8px; margin-top:8px; }
+    .empty-state { padding:32px; text-align:center; color:var(--muted); background:var(--bg); border-radius:12px; border:1px dashed var(--border); font-size:0.875rem; }
+    .warning-box { padding:12px 16px; background:var(--warning-soft); border:1px solid var(--warning); border-radius:8px; margin-top:12px; }
+    .warning-item { color:var(--warning); font-size:0.875rem; }
+    code { background:var(--bg); padding:2px 6px; border-radius:4px; font-size:0.8rem; color:var(--accent); border:1px solid var(--border); }
+    .cmd { display:inline-block; padding:4px 8px; background:var(--surface); border:1px solid var(--border); border-radius:6px; font-size:0.8rem; color:var(--text); cursor:pointer; transition:all 0.15s; }
+    .cmd:hover { background:var(--accent-soft); border-color:var(--accent); }
+    .hint { color:var(--muted); font-size:0.8rem; margin-top:8px; }
+    footer { text-align:center; color:var(--muted); font-size:0.75rem; padding:24px 0; }
+    footer a { color:var(--accent); text-decoration:none; }
+    @media (max-width: 640px) { .grid-4 { grid-template-columns: repeat(2, 1fr); } .hero-grid { grid-template-columns: repeat(2, 1fr); } .nav { gap:8px; } }
+    </style>
+</head>
+<body>
+<div class="container">
+  
+    <nav class="nav">
+      <a href="#digest">今日 Digest</a>
+      <a href="#quality">Quality</a>
+      <a href="#sources">Sources</a>
+      <a href="#runs">Runs</a>
+      <a href="#replay">Replay</a>
+      <a href="#feedback">Feedback</a>
+    </nav>
+    
+  
+    <div class="hero">
+      <div class="hero-title">newsletter-ai Dashboard</div>
+      <div class="hero-meta">本地静态预览 · 不联网 · 不发送 Telegram</div>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <div class="hero-value status-success">success</div>
+          <div class="hero-label">状态</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-value">20</div>
+          <div class="hero-label">Items</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-value">1</div>
+          <div class="hero-label">Sections</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-value">1</div>
+          <div class="hero-label">Sources</div>
+        </div>
+      </div>
+      <div class="hero-detail">
+        <span>Run: <code>2026-05-20T08:45:43.736599Z</code></span>
+        <span>Mode: source_registry</span>
+        <span>Time: 2026-05-20T08:45:43.736599Z</span>
+        <span>Dry Run: 是</span>
+      </div>
+    </div>
+    
+  <div class="card" id="digest"><h2>今日 Digest</h2>
+<div class="section"><h3>tech <span class="section-count">20 items</span></h3>
+<div class="item-list">
+
+            <div class="item" data-title="Gaussian Splat of a Strawberry" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#1</span>
+                <span class="item-title">Gaussian Splat of a Strawberry</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://superspl.at/scene/84df8849&quot;&gt;https://superspl.at/scene/84df8849&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48191602&quot;&gt;https://news.ycombinator.com/item?id=48191602&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 20&lt;/p&gt;
+&lt;p&gt;# Comments: 10&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://superspl.at/scene/84df8849" target="_blank">https://superspl.at/scene/84df8849</a></div>
+            </div>
+            
+
+            <div class="item" data-title="Mini Shai-Hulud Strikes Again: 314 npm Packages Compromised" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#2</span>
+                <span class="item-title">Mini Shai-Hulud Strikes Again: 314 npm Packages Compromised</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://safedep.io/mini-shai-hulud-strikes-again-314-npm-packages-compromised/&quot;&gt;https://safedep.io/mini-shai-hulud-strikes-again-314-npm-packages-compromised/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48189368&quot;&gt;https://news.ycombinator.com/item?id=48189368&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 116&lt;/p&gt;
+&lt;p&gt;# Comments: 60&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://safedep.io/mini-shai-hulud-strikes-again-314-npm-packages-compromised/" target="_blank">https://safedep.io/mini-shai-hulud-strikes-again-314-npm-packages-compromised/</a></div>
+            </div>
+            
+
+            <div class="item" data-title="PyTorch Landscape" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#3</span>
+                <span class="item-title">PyTorch Landscape</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://pytorch.landscape2.io&quot;&gt;https://pytorch.landscape2.io&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48189178&quot;&gt;https://news.ycombinator.com/item?id=48189178&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 47&lt;/p&gt;
+&lt;p&gt;# Comments: 10&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://pytorch.landscape2.io" target="_blank">https://pytorch.landscape2.io</a></div>
+            </div>
+            
+
+            <div class="item" data-title="Show HN: Hsrs – Type-Safe Haskell Bindings Generator for Rust" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#4</span>
+                <span class="item-title">Show HN: Hsrs – Type-Safe Haskell Bindings Generator for Rust</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Hey everyone! I&#x27;ve been working on hsrs, a type-safe Haskell Bindings Generator for Rust.&lt;p&gt;I couldn&#x27;t really find any bindings generator that would create type-safe, rich bindings for Haskell from Rust. Naturally, both languages have rich type systems, so I was amazed that no awesome bindings generator already existed, hence I decided to write my own. hsrs feels very similar to pyo3 and napi-rs, and if you&#x27;ve used those, hsrs will feel right at home.&lt;p&gt;What&#x27;s unique about hsrs as opposed to hs-bindgen is that it has type-safe bindings for rich types, like Result, Maybe, etc. while also generating Haskell bindings. The repo contains a minimal example, and more details are available in the haskell discourse: &lt;a href=&quot;https://discourse.haskell.org/t/ann-hsrs-ergonomic-haskell-bindings-for-rust/14129&quot; rel=&quot;nofollow&quot;&gt;https://discourse.haskell.org/t/ann-hsrs-ergonomic-haskell-b...&lt;/a&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48189044&quot;&gt;https://news.ycombinator.com/item?id=48189044&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 36&lt;/p&gt;
+&lt;p&gt;# Comments: 2&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://github.com/harmont-dev/hsrs" target="_blank">https://github.com/harmont-dev/hsrs</a></div>
+            </div>
+            
+
+            <div class="item" data-title="Peter Neumann has died" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#5</span>
+                <span class="item-title">Peter Neumann has died</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://www.tuhs.org/pipermail/tuhs/2026-May/033748.html&quot;&gt;https://www.tuhs.org/pipermail/tuhs/2026-May/033748.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48188787&quot;&gt;https://news.ycombinator.com/item?id=48188787&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 137&lt;/p&gt;
+&lt;p&gt;# Comments: 8&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://www.tuhs.org/pipermail/tuhs/2026-May/033748.html" target="_blank">https://www.tuhs.org/pipermail/tuhs/2026-May/033748.html</a></div>
+            </div>
+            
+
+            <div class="item" data-title="Peter Salus has died" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#6</span>
+                <span class="item-title">Peter Salus has died</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://www.tuhs.org/pipermail/tuhs/2026-May/033750.html&quot;&gt;https://www.tuhs.org/pipermail/tuhs/2026-May/033750.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48188665&quot;&gt;https://news.ycombinator.com/item?id=48188665&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 140&lt;/p&gt;
+&lt;p&gt;# Comments: 12&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://www.tuhs.org/pipermail/tuhs/2026-May/033750.html" target="_blank">https://www.tuhs.org/pipermail/tuhs/2026-May/033750.html</a></div>
+            </div>
+            
+
+            <div class="item" data-title="The last six months in LLMs in five minutes" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#7</span>
+                <span class="item-title">The last six months in LLMs in five minutes</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://simonwillison.net/2026/May/19/5-minute-llms/&quot;&gt;https://simonwillison.net/2026/May/19/5-minute-llms/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48188183&quot;&gt;https://news.ycombinator.com/item?id=48188183&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 479&lt;/p&gt;
+&lt;p&gt;# Comments: 349&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://simonwillison.net/2026/May/19/5-minute-llms/" target="_blank">https://simonwillison.net/2026/May/19/5-minute-llms/</a></div>
+            </div>
+            
+
+            <div class="item" data-title="Pope Leo XIV’s first encyclical Magnifica humanitas to be published May 25" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#8</span>
+                <span class="item-title">Pope Leo XIV’s first encyclical Magnifica humanitas to be published May 25</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://www.vaticannews.va/en/pope/news/2026-05/pope-leo-xiv-first-encyclical-magnifica-humanitas.html&quot;&gt;https://www.vaticannews.va/en/pope/news/2026-05/pope-leo-xiv-first-encyclical-magnifica-humanitas.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48187201&quot;&gt;https://news.ycombinator.com/item?id=48187201&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 236&lt;/p&gt;
+&lt;p&gt;# Comments: 155&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://www.vaticannews.va/en/pope/news/2026-05/pope-leo-xiv-first-encyclical-magnifica-humanitas.html" target="_blank">https://www.vaticannews.va/en/pope/news/2026-05/pope-leo-xiv-first-encyclical-magnifica-humanitas.html</a></div>
+            </div>
+            
+
+            <div class="item" data-title="Click (2016)" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#9</span>
+                <span class="item-title">Click (2016)</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://clickclickclick.click/&quot;&gt;https://clickclickclick.click/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48187054&quot;&gt;https://news.ycombinator.com/item?id=48187054&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 312&lt;/p&gt;
+&lt;p&gt;# Comments: 76&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://clickclickclick.click/" target="_blank">https://clickclickclick.click/</a></div>
+            </div>
+            
+
+            <div class="item" data-title="Alignment pretraining: AI discourse creates self-fulfilling (mis)alignment" data-source="Hacker News: Front Page">
+              <div class="item-header">
+                <span class="item-index">#10</span>
+                <span class="item-title">Alignment pretraining: AI discourse creates self-fulfilling (mis)alignment</span>
+                <span class="item-score">0.500</span>
+              </div>
+              <div class="item-meta">来源：Hacker News: Front Page</div>
+              <div class="item-tags"><span class="tag">tech</span><span class="tag">link_digest</span></div>
+              <div class="item-summary">&lt;p&gt;Article URL: &lt;a href=&quot;https://arxiv.org/abs/2601.10160&quot;&gt;https://arxiv.org/abs/2601.10160&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Comments URL: &lt;a href=&quot;https://news.ycombinator.com/item?id=48185938&quot;&gt;https://news.ycombinator.com/item?id=48185938&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Points: 58&lt;/p&gt;
+&lt;p&gt;# Comments: 24&lt;/p&gt;</div>
+              <div class="item-url"><a href="https://arxiv.org/abs/2601.10160" target="_blank">https://arxiv.org/abs/2601.10160</a></div>
+            </div>
+            
+<div class="more-hint">另有 10 条未展开</div>
+</div></div>
+</div>
+  
+    <div class="card" id="quality">
+      <h2>Quality Report</h2>
+      <div class="grid-2">
+        <div class="subcard">
+          <h3>Section Distribution</h3>
+          <table class="mini-table">
+            <thead><tr><th>Section</th><th>Items</th></tr></thead>
+            <tbody><tr><td>tech</td><td>20</td></tr></tbody>
+          </table>
+        </div>
+        <div class="subcard">
+          <h3>Duplicate Analysis</h3>
+          <div class="big-metric">
+            <div class="big-value">0</div>
+            <div class="big-label">Fuzzy Duplicates</div>
+          </div>
+          
+        </div>
+      </div>
+      <div class="subcard">
+        <h3>Source Quality (Top 5)</h3>
+        <table class="mini-table">
+          <thead><tr><th>Source</th><th>Score</th><th>Status</th><th>Items</th></tr></thead>
+          <tbody><tr><td>hnrss-frontpage-replay</td><td>0.000</td><td>success</td><td>0</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    
+  
+    <div class="card" id="sources">
+      <h2>Sources</h2>
+      <div class="grid-4">
+        <div class="stat-card stat-total"><div class="stat-value">1</div><div class="stat-label">总计</div></div>
+        <div class="stat-card stat-success"><div class="stat-value">1</div><div class="stat-label">成功</div></div>
+        <div class="stat-card stat-failed"><div class="stat-value">0</div><div class="stat-label">失败</div></div>
+        <div class="stat-card stat-skipped"><div class="stat-value">0</div><div class="stat-label">跳过(网络)</div></div>
+      </div>
+      
+    </div>
+    
+  
+    <div class="card" id="runs">
+      <h2>最近 Runs</h2>
+      <table class="mini-table">
+        <thead><tr><th>Run ID</th><th>时间</th><th>输入模式</th><th>Items</th><th>状态</th></tr></thead>
+        <tbody><tr><td><code>2026-05-20T08:39:02.438913Z</code></td><td>2026-05-20T08:39:02.438913Z</td><td>source_registry</td><td>20</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:02.624076Z</code></td><td>2026-05-20T08:39:02.624076Z</td><td>fixture_json</td><td>5</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:02.781315Z</code></td><td>2026-05-20T08:39:02.781315Z</td><td>fixture_json</td><td>5</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:05.796596Z</code></td><td>2026-05-20T08:39:05.796596Z</td><td>source_registry</td><td>20</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:07.187653Z</code></td><td>2026-05-20T08:39:07.187653Z</td><td>fixture_json</td><td>5</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:07.277972Z</code></td><td>2026-05-20T08:39:07.277972Z</td><td>fixture_json</td><td>0</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:07.398645Z</code></td><td>2026-05-20T08:39:07.398645Z</td><td>source_registry</td><td>14</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:07.443038Z</code></td><td>2026-05-20T08:39:07.443038Z</td><td>fixture_json</td><td>5</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:07.655120Z</code></td><td>2026-05-20T08:39:07.655120Z</td><td>fixture_json</td><td>5</td><td><span class="badge badge-success">success</span></td></tr>
+<tr><td><code>2026-05-20T08:39:07.884846Z</code></td><td>2026-05-20T08:39:07.884846Z</td><td>source_registry</td><td>20</td><td><span class="badge badge-success">success</span></td></tr></tbody>
+      </table>
+    </div>
+    
+  
+    <div class="card" id="replay">
+      <h2>Replay Sources</h2>
+      <table class="mini-table">
+        <thead><tr><th>Source ID</th><th>名称</th><th>类型</th><th>状态</th></tr></thead>
+        <tbody><tr><td>hnrss-frontpage-replay</td><td>Hacker News Frontpage Replay</td><td>rss_replay</td><td><span class="badge badge-success">启用</span></td></tr>
+<tr><td>hnrss-frontpage-replay</td><td>Hacker News Frontpage Replay</td><td>rss_replay</td><td><span class="badge badge-success">启用</span></td></tr></tbody>
+      </table>
+      <div class="hint">验证 replay： <code>newsletter-ai replay validate</code></div>
+    </div>
+    
+  
+    <div class="card" id="feedback">
+      <h2>Feedback 命令速查</h2>
+      <p class="hint">点击命令文本可复制（需浏览器支持）</p>
+      <table class="mini-table">
+        <thead><tr><th>#</th><th>标题</th><th>Like</th><th>Save</th><th>Dislike</th></tr></thead>
+        <tbody><tr>
+          <td><span class="item-index">#1</span></td>
+          <td>Gaussian Splat of a Strawberry</td>
+          <td><code class="cmd">newsletter-ai feedback like 1 --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback save 1 --note &quot;值得深挖&quot; --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback dislike 1 --dry-run</code></td>
+        </tr>
+<tr>
+          <td><span class="item-index">#2</span></td>
+          <td>Mini Shai-Hulud Strikes Again: 314 npm Packages Compromised</td>
+          <td><code class="cmd">newsletter-ai feedback like 2 --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback save 2 --note &quot;值得深挖&quot; --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback dislike 2 --dry-run</code></td>
+        </tr>
+<tr>
+          <td><span class="item-index">#3</span></td>
+          <td>PyTorch Landscape</td>
+          <td><code class="cmd">newsletter-ai feedback like 3 --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback save 3 --note &quot;值得深挖&quot; --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback dislike 3 --dry-run</code></td>
+        </tr>
+<tr>
+          <td><span class="item-index">#4</span></td>
+          <td>Show HN: Hsrs – Type-Safe Haskell Bindings Generator for Rust</td>
+          <td><code class="cmd">newsletter-ai feedback like 4 --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback save 4 --note &quot;值得深挖&quot; --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback dislike 4 --dry-run</code></td>
+        </tr>
+<tr>
+          <td><span class="item-index">#5</span></td>
+          <td>Peter Neumann has died</td>
+          <td><code class="cmd">newsletter-ai feedback like 5 --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback save 5 --note &quot;值得深挖&quot; --dry-run</code></td>
+          <td><code class="cmd">newsletter-ai feedback dislike 5 --dry-run</code></td>
+        </tr></tbody>
+      </table>
+    </div>
+    
+  <footer>
+    Generated by newsletter-ai v0.4.2 · <a href="https://github.com/conanxin/newsletter-ai">GitHub</a>
+  </footer>
+</div>
+</body>
+</html>

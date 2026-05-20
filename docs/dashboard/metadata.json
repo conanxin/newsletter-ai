@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-05-20T08:45:43.736599Z",
+  "run_id": "2026-05-20T08:45:43.736599Z",
+  "input_mode": "source_registry",
+  "item_count": 20,
+  "source_count": 1,
+  "section_count": 1,
+  "status": "success",
+  "quality_report_path": "output/quality/latest_quality.json",
+  "snapshot_path": "output/snapshots/latest_items.json",
+  "generated_by": "newsletter-ai v0.4.3"
+}
