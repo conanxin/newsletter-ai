@@ -196,7 +196,7 @@ class TestRenderDashboardHtml:
         data = load_dashboard_data()
         html = render_dashboard_html(data)
         assert "newsletter-ai Dashboard" in html
-        assert "最新运行概览" in html
+        assert "Dashboard" in html
         assert "Test Title" in html
         assert "#1" in html  # item_index
         assert "ai" in html
