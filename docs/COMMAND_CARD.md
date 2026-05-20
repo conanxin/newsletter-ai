@@ -1,4 +1,4 @@
-# Command Card v0.3.12
+# Command Card v0.3.19
 
 ## Release Gate
 - make release-check
@@ -7,19 +7,30 @@
 ## Daily Dry-Run
 - newsletter-ai daily --dry-run
 - Uses data/fixtures/dry_run_items.json by default (normalized)
+- Writes run record to output/runs/<run_id>.json and updates output/runs/index.json
 
 ## Daily with Source Registry (v0.3.10, v0.3.12)
 - newsletter-ai daily --dry-run --source-registry data/fixtures/source_registry.json
 - Reads enabled rss_fixture sources from registry (offline by default)
 - rss_url sources are skipped unless --allow-network is provided
 - Requires --dry-run or --no-publish
-- Records input_mode / source_count / item_count / ingestion_report in last-run-status
+- Records input_mode / source_count / item_count / ingestion_report / run_record_path in last-run-status
 
 ## Daily with Network (v0.3.12 — explicit opt-in only)
 - newsletter-ai daily --dry-run --source-registry data/fixtures/source_registry.json --allow-network
 - Allows rss_url sources to perform real HTTP requests
 - --allow-network requires --dry-run or --no-publish for safety
 - Default is always offline — no implicit network access
+
+## Run Artifact Index (v0.3.19)
+- newsletter-ai runs list
+- newsletter-ai runs latest
+- newsletter-ai runs inspect <run_id>
+- Run index location: output/runs/index.json
+- Individual records: output/runs/<run_id>.json
+- Each record links: snapshot, quality report, ingestion summary, last-run-status
+- Graceful error if no runs: "Run: newsletter-ai daily --dry-run"
+- output/runs/ is runtime artifact — do not commit
 
 ## Source Registry (v0.3.9, v0.3.11, v0.3.12, v0.3.14)
 - newsletter-ai sources list

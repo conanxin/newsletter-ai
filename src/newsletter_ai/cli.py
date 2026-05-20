@@ -74,6 +74,11 @@ def main():
     replay_p.add_argument("--name", default=None, help="Source name for promote")
     replay_p.add_argument("--as-json", action="store_true", help="Output pure JSON for promote (v0.3.17)")
 
+    # runs (v0.3.19: run artifact index)
+    runs_p = subparsers.add_parser("runs", help="Run artifact index commands")
+    runs_p.add_argument("subcmd", choices=["list", "latest", "inspect"])
+    runs_p.add_argument("run_id", nargs="?", help="Run ID for inspect")
+
     args = parser.parse_args()
     cfg = load_config()
 
@@ -567,6 +572,60 @@ def main():
                 print("Proposed registry entry (dry-run, not written):")
                 print(json.dumps(entry, indent=2, ensure_ascii=False))
                 print("\nTo add to registry, append this to data/fixtures/source_registry.json")
+            sys.exit(0)
+
+    elif args.command == "runs":
+        from .runs import list_runs, get_latest_run, load_run_record, RunIndexError
+
+        output_dir = cfg["OUTPUT_DIR"]
+
+        if args.subcmd == "list":
+            try:
+                runs = list_runs(output_dir, limit=20)
+            except RunIndexError:
+                runs = []
+            if not runs:
+                print("No runs found. Run: newsletter-ai daily --dry-run")
+                sys.exit(0)
+            print(f"{'Run ID':<30} {'Created':<25} {'Status':<10} {'Mode':<18} {'Items':>5} {'Quality Report'}")
+            print("-" * 110)
+            for r in runs:
+                run_id = r.get("run_id", "unknown")[:28]
+                created = r.get("created_at", "")[:23]
+                status = r.get("status", "unknown")
+                mode = r.get("input_mode", "unknown")
+                items = r.get("item_count", 0)
+                qpath = r.get("quality_report_path", "")
+                print(f"{run_id:<30} {created:<25} {status:<10} {mode:<18} {items:>5} {qpath}")
+            sys.exit(0)
+
+        elif args.subcmd == "latest":
+            run = get_latest_run(output_dir)
+            if not run:
+                print("No runs found. Run: newsletter-ai daily --dry-run")
+                sys.exit(0)
+            run_id = run.get("run_id", "unknown")
+            print(f"Latest Run: {run_id}")
+            print(f"  Status: {run.get('status', 'unknown')}")
+            print(f"  Created: {run.get('created_at', 'unknown')}")
+            print(f"  Input Mode: {run.get('input_mode', 'unknown')}")
+            print(f"  Items: {run.get('item_count', 0)}")
+            print(f"  Quality Report: {run.get('quality_report_path', 'N/A')}")
+            print(f"  Record: {run.get('record_path', 'N/A')}")
+            sys.exit(0)
+
+        elif args.subcmd == "inspect":
+            run_id = getattr(args, "run_id", None)
+            if not run_id:
+                print("Error: inspect requires a run_id")
+                print("Usage: newsletter-ai runs inspect <run_id>")
+                sys.exit(1)
+            try:
+                record = load_run_record(run_id, output_dir)
+                print(json.dumps(record, indent=2, ensure_ascii=False))
+            except RunIndexError as e:
+                print(f"Error: {e}")
+                sys.exit(1)
             sys.exit(0)
 
     else:

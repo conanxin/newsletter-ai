@@ -1,4 +1,4 @@
-"""v0.2.4S Pipeline runner with full dry-run snapshot support + v0.3.10 source registry mode + v0.3.11 ingestion report."""
+"""v0.2.4S Pipeline runner with full dry-run snapshot support + v0.3.10 source registry mode + v0.3.11 ingestion report + v0.3.19 run artifact index."""
 
 import json
 import time
@@ -19,6 +19,75 @@ def _write_last_run_status(status: Dict[str, Any], cfg: Dict) -> None:
     status_file = out_dir / "state" / "last-run-status.json"
     status_file.parent.mkdir(parents=True, exist_ok=True)
     status_file.write_text(json.dumps(status, indent=2, ensure_ascii=False))
+
+
+def _write_run_index(final_status: Dict[str, Any], cfg: Dict) -> None:
+    """v0.3.19: Write run record to output/runs/ and update index."""
+    from .runs import make_run_record, append_run_record
+
+    started = final_status.get("started_at", _now_iso())
+    steps = final_status.get("steps", [])
+    digest_step = [s for s in steps if s.get("name") == "digest"]
+    rank_step = [s for s in steps if s.get("name") == "rank"]
+
+    snapshot_path = None
+    digest_path = None
+    telegram_path = None
+    quality_report_path = final_status.get("quality_report_path")
+    section_count = 0
+
+    if digest_step:
+        snap = digest_step[0].get("snapshot", {})
+        snapshot_path = Path(snap["latest"]) if snap.get("latest") else None
+        section_count = digest_step[0].get("section_count", 0)
+
+    ingestion_summary = None
+    if final_status.get("ingestion_report"):
+        ir = final_status["ingestion_report"]
+        ingestion_summary = {
+            "source_count_total": ir.get("source_count_total", 0),
+            "source_count_enabled": ir.get("source_count_enabled", 0),
+            "source_count_success": ir.get("source_count_success", 0),
+            "source_count_failed": ir.get("source_count_failed", 0),
+            "total_items": ir.get("total_items", 0),
+        }
+
+    warnings = []
+    errors = []
+    if final_status.get("failed_step"):
+        errors.append(f"Failed step: {final_status['failed_step']}")
+    for s in steps:
+        if s.get("status") == "failed" and s.get("error"):
+            errors.append(f"{s['name']}: {s['error']}")
+        if s.get("warnings"):
+            warnings.extend(s["warnings"])
+
+    base_dir = cfg.get("BASE_DIR", cfg["OUTPUT_DIR"].parent)
+    last_run_status_path = cfg["OUTPUT_DIR"] / "state" / "last-run-status.json"
+
+    record = make_run_record(
+        run_id=started,
+        created_at=started,
+        status=final_status.get("status", "unknown"),
+        input_mode=final_status.get("input_mode", "unknown"),
+        output_dir=cfg["OUTPUT_DIR"],
+        base_dir=base_dir,
+        item_count=final_status.get("item_count", 0),
+        section_count=section_count,
+        source_count=final_status.get("source_count", 0),
+        source_registry_path=final_status.get("source_registry_path"),
+        snapshot_path=snapshot_path,
+        digest_path=digest_path,
+        telegram_path=telegram_path,
+        quality_report_path=Path(quality_report_path) if quality_report_path else None,
+        last_run_status_path=last_run_status_path,
+        ingestion_report_summary=ingestion_summary,
+        warnings=warnings or None,
+        errors=errors or None,
+    )
+
+    record_path = append_run_record(record, cfg["OUTPUT_DIR"], base_dir)
+    final_status["run_record_path"] = str(record_path)
 
 
 def run_daily_pipeline(
@@ -125,6 +194,8 @@ def run_daily_pipeline(
                     step_result["finished_at"] = _now_iso()
                     step_result["duration_sec"] = round(time.time() - start_time, 3)
                     step_result["ranked_count"] = len(ranked)
+                    # Ensure item_count reflects what was actually ranked
+                    item_count = len(ranked)
 
                     # v0.3.11: attach ingestion report summary to rank step
                     if ingestion_report is not None:
@@ -290,6 +361,9 @@ def run_daily_pipeline(
     digest_step = [s for s in steps if s.get("name") == "digest"]
     if digest_step and digest_step[0].get("quality_report_path"):
         final_status["quality_report_path"] = digest_step[0]["quality_report_path"]
+
+    # v0.3.19: write run artifact index
+    _write_run_index(final_status, cfg)
 
     _write_last_run_status(final_status, cfg)
     return final_status

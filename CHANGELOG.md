@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.3.19 (2026-05)
+- Run Artifact Index + History Browser
+- New module `src/newsletter_ai/runs.py`:
+  - `make_run_record(...)` — builds a run record with relative paths
+  - `append_run_record(...)` — writes `output/runs/<run_id>.json` and updates `output/runs/index.json`
+  - `list_runs(...)`, `get_latest_run(...)`, `load_run_record(...)` — index queries
+  - No secrets stored; paths are relative to project base for portability
+- Pipeline integration:
+  - `run_daily_pipeline()` now calls `_write_run_index()` after each run
+  - Both default dry-run and replay registry daily write run records
+  - `last-run-status.json` includes `run_record_path`
+  - Run record links: snapshot, quality report, ingestion summary, warnings/errors
+- New CLI commands:
+  - `newsletter-ai runs list` — shows recent runs (run_id, status, mode, items, quality path)
+  - `newsletter-ai runs latest` — shows latest run summary
+  - `newsletter-ai runs inspect <run_id>` — shows full run record as JSON
+  - Graceful message if no runs exist: `Run: newsletter-ai daily --dry-run`
+- Tests:
+  - `tests/test_runs.py` — 9 tests covering record creation, index update, trimming, no secrets
+  - `tests/test_pipeline_run_index.py` — 4 tests covering daily dry-run, replay registry, last-run-status, quality path linkage
+  - `tests/test_cli_runs.py` — 5 tests covering list/latest/inspect and missing-run handling
+- `output/runs/` is a runtime artifact directory — should not be committed
+
 ## v0.3.18 (2026-05)
 - Current-run Quality Report Consistency
 - `daily --dry-run` now generates `output/quality/latest_quality.json` after each run
