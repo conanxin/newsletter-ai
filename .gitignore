@@ -21,3 +21,10 @@ data/state/feedback_events.jsonl
 data/state/preferences_history.jsonl
 data/state/*.jsonl
 data/state/latest_*.json
+
+# build artifacts
+*.egg-info/
+src/newsletter_ai.egg-info/
+
+# backup directories
+.backup*/
