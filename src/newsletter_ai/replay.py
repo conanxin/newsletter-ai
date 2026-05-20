@@ -81,13 +81,19 @@ def build_replay_metadata(
     *,
     sanitized: bool = False,
     stripped_tracking_params_count: int = 0,
+    xml_text: str = "",
 ) -> Dict[str, Any]:
     """Build metadata dict for a replay fixture.
 
     Does NOT include auth headers, cookies, or tokens.
+    If xml_text is provided, sha256 is computed from it (post-sanitize).
+    Otherwise falls back to fetch_result.text (pre-sanitize, legacy).
     """
-    xml_text = getattr(fetch_result, "text", "") or ""
-    sha256 = hashlib.sha256(xml_text.encode("utf-8")).hexdigest()
+    if xml_text:
+        sha256 = hashlib.sha256(xml_text.encode("utf-8")).hexdigest()
+    else:
+        raw_text = getattr(fetch_result, "text", "") or ""
+        sha256 = hashlib.sha256(raw_text.encode("utf-8")).hexdigest()
 
     return {
         "source_id": source.get("source_id", "unknown"),

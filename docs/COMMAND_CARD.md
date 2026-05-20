@@ -4,6 +4,20 @@
 - make release-check
 - make validate
 
+## v0.4.0 Real Source Trial Commands
+- Real RSS source fetch + replay capture:
+  - `newsletter-ai sources fetch --registry /tmp/newsletter_ai_v04_real_sources_registry.json --allow-network --capture-replay --source-id hnrss-frontpage`
+- Trial replay registry (offline, HN only):
+  - `newsletter-ai daily --dry-run --source-registry data/fixtures/real_source_trial_registry.json`
+  - `newsletter-ai quality sections/sources/duplicates`
+  - `newsletter-ai feedback like 1 --dry-run`
+- Replay fixture:
+  - `data/fixtures/replay/rss_hnrss-frontpage_20260520_015710.xml`
+- arXiv replay (~1.1MB) captured locally but excluded from repo for size
+- All real fetches require explicit `--allow-network`
+- Default daily remains offline
+- Replay sha256 now computed from sanitized XML (post-sanitize)
+
 ## Daily Dry-Run
 - newsletter-ai daily --dry-run
 - Uses data/fixtures/dry_run_items.json by default (normalized)

@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.4.0 Real Source Trial (2026-05)
+- Real RSS Source Smoke + Replay Fixture Capture (HN only)
+- Source trialed:
+  - Hacker News Frontpage (https://hnrss.org/frontpage) — 20 items, HTTP 200
+- arXiv cs.AI also fetched locally (343 items, HTTP 200) but excluded from repo due to size (~1.1MB)
+- Replay fixture captured:
+  - `data/fixtures/replay/rss_hnrss-frontpage_20260520_015710.xml`
+- New trial replay registry:
+  - `data/fixtures/real_source_trial_registry.json` — fully offline rss_replay source (HN only)
+- Verified offline daily pipeline with real-source replay:
+  - `daily --dry-run --source-registry data/fixtures/real_source_trial_registry.json` → 20 items
+  - `quality sections/sources/duplicates` → current-run reports
+  - `feedback like 1 --dry-run` → parses replay items
+  - `runs latest` → traces run record
+- All real RSS fetches used explicit `--allow-network`
+- Default daily remains offline (fixture_json)
+- No assertions on real-time titles in tests
+- **Fix**: replay metadata sha256 now computed from sanitized XML (post-sanitize), ensuring `replay validate` passes
+
 ## v0.3.19 (2026-05)
 - Run Artifact Index + History Browser
 - New module `src/newsletter_ai/runs.py`:
