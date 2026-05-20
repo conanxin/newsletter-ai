@@ -6,6 +6,25 @@ __pycache__/
 # runtime artifacts
 data/normalized/
 output/
+*.log
 
 # local user state
 data/state/preferences.json
+auth.json
+*.token
+chat_id.txt
+bot_token.txt
+
+# runtime state snapshots (should not be versioned)
+data/state/latest_snapshot.json
+data/state/feedback_events.jsonl
+data/state/preferences_history.jsonl
+data/state/*.jsonl
+data/state/latest_*.json
+
+# build artifacts
+*.egg-info/
+src/newsletter_ai.egg-info/
+
+# backup directories
+.backup*/

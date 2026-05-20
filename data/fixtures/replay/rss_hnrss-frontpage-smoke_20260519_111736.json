@@ -1,0 +1,13 @@
+{
+  "source_id": "hnrss-frontpage-smoke",
+  "name": "Hacker News Frontpage Smoke",
+  "url": "https://hnrss.org/frontpage",
+  "fetched_at": "2026-05-19T11:17:36.003079Z",
+  "status_code": 200,
+  "item_count": 20,
+  "sha256": "2791acbb41761bca8731210155592d5644ec9f82151bcd0adcdb4bdf03e154fb",
+  "generated_by": "newsletter-ai/replay v0.3.15",
+  "version": "1",
+  "sanitized": true,
+  "stripped_tracking_params_count": 0
+}

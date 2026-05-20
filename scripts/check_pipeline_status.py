@@ -1,37 +1,24 @@
 #!/usr/bin/env python3
-from __future__ import annotations
-import json
-from pathlib import Path
+"""
+Thin wrapper for backward compatibility.
+Recommends using `newsletter-ai status` instead.
+"""
 
-STATUS = Path('/mnt/d/obsidian_nov/nov/newsletter/output/state/last-run-status.json')
-ALERTS = Path('/mnt/d/obsidian_nov/nov/newsletter/output/alerts')
-
+import subprocess
+import sys
 
 def main():
-    if not STATUS.exists():
-        print('STATUS_MISSING=1')
-        return
-    s = json.loads(STATUS.read_text(encoding='utf-8'))
-    ok = bool(s.get('ok'))
-    print('OK=' + ('1' if ok else '0'))
-    print('TIME=' + str(s.get('time','')))
-    print('FAILED_STEP=' + str(s.get('failed_step','')))
-    print('ERROR=' + str(s.get('error','')))
-    print('LOG_FILE=' + str(s.get('log_file','')))
-
-    if not ok:
-        ALERTS.mkdir(parents=True, exist_ok=True)
-        alert = ALERTS / 'latest-alert.txt'
-        txt = (
-            '⚠️ Newsletter Daily Pipeline 失败\n\n'
-            f"- 时间: {s.get('time','')}\n"
-            f"- 失败步骤: {s.get('failed_step','')}\n"
-            f"- 错误: {s.get('error','')}\n"
-            f"- 日志: {s.get('log_file','')}\n"
+    print("[DEPRECATION WARNING] scripts/check_pipeline_status.py is legacy.")
+    print("Please use: newsletter-ai status\n")
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "newsletter_ai.cli", "status"] + sys.argv[1:],
+            check=False
         )
-        alert.write_text(txt, encoding='utf-8')
-        print('ALERT_FILE=' + str(alert))
+        sys.exit(result.returncode)
+    except Exception as e:
+        print(f"Wrapper error: {e}")
+        sys.exit(1)
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

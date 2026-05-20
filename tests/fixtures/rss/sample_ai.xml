@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+<channel>
+<title>AI News</title>
+<link>https://example.com/ai</link>
+<item>
+<title>AI Breakthrough in 2026</title>
+<link>https://example.com/ai/1</link>
+<guid>ai-2026-1</guid>
+<pubDate>Mon, 18 May 2026 10:00:00 GMT</pubDate>
+<description>Exciting new AI model released.</description>
+</item>
+<item>
+<title>Another AI Update</title>
+<link>https://example.com/ai/2</link>
+<guid>ai-2026-2</guid>
+<pubDate>Mon, 18 May 2026 11:00:00 GMT</pubDate>
+<description>More details on the breakthrough.</description>
+</item>
+</channel>
+</rss>

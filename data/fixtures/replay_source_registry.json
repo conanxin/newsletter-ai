@@ -1,0 +1,12 @@
+[
+  {
+    "source_id": "hnrss-frontpage-replay",
+    "name": "Hacker News Frontpage Replay",
+    "type": "rss_replay",
+    "enabled": true,
+    "fixture_path": "data/fixtures/replay/rss_hnrss-frontpage-smoke_20260519_111736.xml",
+    "topic_hints": ["tech"],
+    "style_hints": ["link_digest"],
+    "quality_weight": 1.0
+  }
+]
