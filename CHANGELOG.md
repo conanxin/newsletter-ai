@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.4.1 Static Dashboard (2026-05)
+- 新增本地静态 Dashboard 生成器
+- 新增模块 `src/newsletter_ai/dashboard.py`：
+  - `load_dashboard_data()` — 读取 latest snapshot / quality / runs / replay 数据
+  - `render_dashboard_html()` — 渲染单文件 HTML（内嵌 CSS，无外部 CDN）
+  - `build_dashboard()` — 生成 `output/dashboard/index.html`
+- 新增 CLI 命令：
+  - `newsletter-ai dashboard build` — 生成 Dashboard
+  - `newsletter-ai dashboard show` — 显示 Dashboard 路径
+- Dashboard 页面包含：
+  - 最新运行概览（run_id、时间、状态、items、sections、sources）
+  - 今日 Digest（按 section 分组，显示 item_index / title / source / summary / url / score）
+  - Quality Report（section distribution、source quality、duplicate analysis）
+  - Sources（ingestion summary、success/failed/skipped）
+  - 最近 Runs（最多 10 条）
+  - Replay Sources（replay registry 概览）
+  - Feedback 命令速查（前 5 条 item 的 like/save 命令）
+- 特性：
+  - 单文件 HTML，内嵌 CSS，中文界面
+  - 不加载外部 CDN，不联网
+  - 不发送 Telegram
+  - 缺少数据时显示 graceful empty state
+  - 使用全局 item_index，与 feedback CLI 一致
+- 测试：
+  - `tests/test_dashboard.py` — 6 个测试覆盖数据加载、HTML 渲染、文件写入、空状态、无 secret
+  - `tests/test_cli_dashboard.py` — 4 个测试覆盖 CLI build/show、graceful 缺失数据、trial registry
+- `output/dashboard/` 是运行产物，不提交到 Git
+
 ## v0.4.0 Real Source Trial (2026-05)
 - Real RSS Source Smoke + Replay Fixture Capture (HN only)
 - Source trialed:

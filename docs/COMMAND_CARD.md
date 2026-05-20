@@ -4,6 +4,16 @@
 - make release-check
 - make validate
 
+## v0.4.1 Static Dashboard Commands
+- `newsletter-ai dashboard build` — generates `output/dashboard/index.html`
+- `newsletter-ai dashboard show` — shows dashboard path
+- Reads: `output/snapshots/latest_items.json`, `output/quality/latest_quality.json`, `output/runs/index.json`, `output/state/last-run-status.json`
+- Single-file HTML with embedded CSS, no external CDN
+- Chinese UI, dark theme
+- Sections: run summary, digest by section, quality report, sources, runs history, replay sources, feedback commands
+- Graceful empty state if no run data
+- `output/dashboard/` is runtime artifact — do not commit
+
 ## v0.4.0 Real Source Trial Commands
 - Real RSS source fetch + replay capture:
   - `newsletter-ai sources fetch --registry /tmp/newsletter_ai_v04_real_sources_registry.json --allow-network --capture-replay --source-id hnrss-frontpage`
